@@ -6,16 +6,20 @@ import com.yutaka.apotheosis_self_affix.util.SoulAffixHelper;
 import dev.shadowsoffire.apotheosis.adventure.affix.Affix;
 import dev.shadowsoffire.apotheosis.adventure.affix.AffixHelper;
 import dev.shadowsoffire.apotheosis.adventure.affix.AffixInstance;
-import dev.shadowsoffire.apotheosis.adventure.affix.effect.DamageReductionAffix;
 import dev.shadowsoffire.apotheosis.adventure.affix.effect.DurableAffix;
 import dev.shadowsoffire.apotheosis.adventure.loot.LootRarity;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 import net.minecraftforge.event.entity.player.PlayerXpEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -28,17 +32,18 @@ import java.util.Map;
 public class SoulAffixEventHandler {
 
     /**
-     * Handles defense/armor affixes when the player is hurt (damage reduction, onHurt potions/effects).
+     * Handles defense/armor affixes when the player is hurt (damage reduction, onHurt potions/effects),
+     * and offensive damage bonuses when the player attacks an entity.
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onLivingHurt(LivingHurtEvent event) {
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide) return;
 
-        // Process defensive affixes for the victim
-        ItemStack soul = SoulAffixHelper.getEquippedSoul(victim);
-        if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+        // 1. Process defensive affixes for the victim
+        ItemStack victimSoul = SoulAffixHelper.getEquippedSoul(victim);
+        if (!victimSoul.isEmpty() && AffixHelper.hasAffixes(victimSoul)) {
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(victimSoul);
             DamageSource source = event.getSource();
             float currentDamage = event.getAmount();
 
@@ -49,19 +54,19 @@ public class SoulAffixEventHandler {
                 float level = inst.level();
 
                 // Apply damage reduction protection
-                int prot = affix.getDamageProtection(soul, rarity, level, source);
+                int prot = SoulAffixHelper.getSafeDamageProtection(affix, victimSoul, rarity, level, source);
                 if (prot > 0) {
                     float reductionFactor = 1.0f - Math.min(20.0f, prot) * 0.04f;
                     currentDamage *= Math.max(0.0f, reductionFactor);
                 }
 
                 // Call onHurt for custom damage reduction or triggers
-                currentDamage = affix.onHurt(soul, rarity, level, source, victim, currentDamage);
+                currentDamage = SoulAffixHelper.safeOnHurt(affix, victimSoul, rarity, level, source, victim, currentDamage);
             }
             event.setAmount(Math.max(0.0f, currentDamage));
         }
 
-        // Process offensive affixes for the attacker (damage bonus)
+        // 2. Process offensive affixes for the attacker (damage bonus)
         Entity directAttacker = event.getSource().getEntity();
         if (directAttacker instanceof LivingEntity attacker) {
             ItemStack attackerSoul = SoulAffixHelper.getEquippedSoul(attacker);
@@ -74,7 +79,7 @@ public class SoulAffixEventHandler {
                     LootRarity rarity = inst.rarity().get();
                     float level = inst.level();
 
-                    bonusDamage += affix.getDamageBonus(soul, rarity, level, victim.getMobType());
+                    bonusDamage += SoulAffixHelper.getSafeDamageBonus(affix, attackerSoul, rarity, level, victim.getMobType());
                 }
                 if (bonusDamage > 0.0f) {
                     event.setAmount(event.getAmount() + bonusDamage);
@@ -93,7 +98,7 @@ public class SoulAffixEventHandler {
 
         Entity directAttacker = event.getSource().getEntity();
 
-        // 1. Post-Hurt triggers on the victim (e.g. hurt-self potion, counter-blindness, thorns-like effects)
+        // 1. Post-Hurt triggers on the victim (e.g. hurt-self potion, counter-blindness, thorns)
         ItemStack victimSoul = SoulAffixHelper.getEquippedSoul(victim);
         if (!victimSoul.isEmpty() && AffixHelper.hasAffixes(victimSoul)) {
             Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(victimSoul);
@@ -103,7 +108,7 @@ public class SoulAffixEventHandler {
                 LootRarity rarity = inst.rarity().get();
                 float level = inst.level();
 
-                affix.doPostHurt(victimSoul, rarity, level, victim, directAttacker);
+                SoulAffixHelper.safeDoPostHurt(affix, victimSoul, rarity, level, victim, directAttacker);
             }
         }
 
@@ -118,7 +123,81 @@ public class SoulAffixEventHandler {
                     LootRarity rarity = inst.rarity().get();
                     float level = inst.level();
 
-                    affix.doPostAttack(attackerSoul, rarity, level, attacker, victim);
+                    SoulAffixHelper.safeDoPostAttack(affix, attackerSoul, rarity, level, attacker, victim);
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles shield blocking affixes (Psychic, etc.)
+     */
+    @SubscribeEvent
+    public static void onShieldBlock(ShieldBlockEvent event) {
+        LivingEntity blocker = event.getEntity();
+        if (blocker.level().isClientSide) return;
+
+        ItemStack soul = SoulAffixHelper.getEquippedSoul(blocker);
+        if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+            float blocked = event.getBlockedDamage();
+
+            for (AffixInstance inst : affixes.values()) {
+                Affix affix = inst.affix().get();
+                if (affix == null) continue;
+                LootRarity rarity = inst.rarity().get();
+                float level = inst.level();
+
+                blocked = SoulAffixHelper.safeOnShieldBlock(affix, soul, rarity, level, blocker, event.getDamageSource(), blocked);
+            }
+            event.setBlockedDamage(blocked);
+        }
+    }
+
+    /**
+     * Handles arrow firing affixes when a projectile spawned by a soul-wearing entity enters the level.
+     */
+    @SubscribeEvent
+    public static void onArrowFired(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide) return;
+        if (event.getEntity() instanceof AbstractArrow arrow) {
+            if (arrow.getOwner() instanceof LivingEntity shooter) {
+                ItemStack soul = SoulAffixHelper.getEquippedSoul(shooter);
+                if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
+                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+                    for (AffixInstance inst : affixes.values()) {
+                        Affix affix = inst.affix().get();
+                        if (affix == null) continue;
+                        LootRarity rarity = inst.rarity().get();
+                        float level = inst.level();
+
+                        SoulAffixHelper.safeOnArrowFired(affix, soul, rarity, level, shooter, arrow);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles arrow impact affixes.
+     */
+    @SubscribeEvent
+    public static void onArrowImpact(ProjectileImpactEvent event) {
+        if (event.getEntity().level().isClientSide) return;
+        if (event.getEntity() instanceof AbstractArrow arrow) {
+            if (arrow.getOwner() instanceof LivingEntity shooter) {
+                ItemStack soul = SoulAffixHelper.getEquippedSoul(shooter);
+                if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
+                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+                    for (AffixInstance inst : affixes.values()) {
+                        Affix affix = inst.affix().get();
+                        if (affix == null) continue;
+                        LootRarity rarity = inst.rarity().get();
+                        float level = inst.level();
+
+                        HitResult result = event.getRayTraceResult();
+                        SoulAffixHelper.safeOnArrowImpact(affix, rarity, level, arrow, result, result.getType());
+                    }
                 }
             }
         }
@@ -178,7 +257,7 @@ public class SoulAffixEventHandler {
                 LootRarity rarity = inst.rarity().get();
                 float level = inst.level();
 
-                affix.onBlockBreak(soul, rarity, level, player, event.getLevel(), event.getPos(), event.getState());
+                SoulAffixHelper.safeOnBlockBreak(affix, soul, rarity, level, player, event.getLevel(), event.getPos(), event.getState());
             }
         }
     }

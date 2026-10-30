@@ -9,11 +9,21 @@ import dev.shadowsoffire.apotheosis.adventure.affix.AffixInstance;
 import dev.shadowsoffire.apotheosis.adventure.affix.effect.DurableAffix;
 import dev.shadowsoffire.apotheosis.adventure.loot.LootCategory;
 import dev.shadowsoffire.apotheosis.adventure.loot.LootRarity;
+import dev.shadowsoffire.apotheosis.adventure.loot.RarityRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.HitResult;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotResult;
 
@@ -67,9 +77,65 @@ public class SoulAffixHelper {
     }
 
     /**
+     * Finds the most suitable fallback rarity if the given affix does not natively
+     * support targetRarity (e.g. for esoteric/artifact/heirloom rarities).
+     */
+    public static LootRarity getEffectiveRarity(Affix affix, LootRarity targetRarity) {
+        if (affix == null || targetRarity == null) {
+            return targetRarity;
+        }
+
+        // Test if the affix directly supports targetRarity
+        if (doesAffixSupportRarity(affix, targetRarity)) {
+            return targetRarity;
+        }
+
+        // Search backward from targetRarity using prev()
+        LootRarity current = targetRarity;
+        for (int i = 0; i < 10; i++) {
+            LootRarity prev = current.prev();
+            if (prev == null || prev == current) break;
+            if (doesAffixSupportRarity(affix, prev)) {
+                return prev;
+            }
+            current = prev;
+        }
+
+        // Fallback search across all known rarities in descending order of quality
+        List<LootRarity> rarities = new ArrayList<>(RarityRegistry.INSTANCE.getValues());
+        rarities.sort((a, b) -> Integer.compare(b.ordinal(), a.ordinal()));
+        for (LootRarity r : rarities) {
+            if (r.ordinal() <= targetRarity.ordinal() && doesAffixSupportRarity(affix, r)) {
+                return r;
+            }
+        }
+
+        // Default to targetRarity if nothing else matched
+        return targetRarity;
+    }
+
+    /**
+     * Checks if the affix can be applied under the specified rarity for any soul category.
+     */
+    public static boolean doesAffixSupportRarity(Affix affix, LootRarity rarity) {
+        if (affix == null || rarity == null) return false;
+        if (affix instanceof DurableAffix) return true;
+
+        for (LootCategory category : ALL_SOUL_CATEGORIES) {
+            try {
+                if (affix.canApplyTo(ItemStack.EMPTY, category, rarity)) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return false;
+    }
+
+    /**
      * Determines whether an affix can be applied to the Soul.
      * Souls accept any affix valid for weapon or armor categories,
-     * plus DurableAffix (substituting durability for XP gain).
+     * including custom rarities via fallback check.
      */
     public static boolean canAffixApplyToSoul(Affix affix, ItemStack stack, LootRarity rarity) {
         if (affix == null) {
@@ -80,6 +146,7 @@ public class SoulAffixHelper {
             return true;
         }
 
+        // 1. Direct check with the requested rarity
         for (LootCategory category : ALL_SOUL_CATEGORIES) {
             try {
                 if (affix.canApplyTo(stack, category, rarity)) {
@@ -88,11 +155,26 @@ public class SoulAffixHelper {
             } catch (Exception ignored) {
             }
         }
+
+        // 2. Fallback check for custom tiers (e.g. esoteric, artifact, heirloom)
+        LootRarity effective = getEffectiveRarity(affix, rarity);
+        if (effective != null && effective != rarity) {
+            for (LootCategory category : ALL_SOUL_CATEGORIES) {
+                try {
+                    if (affix.canApplyTo(stack, category, effective)) {
+                        return true;
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
         return false;
     }
 
     /**
      * Aggregates all attribute modifiers from all affixes on the Soul item.
+     * Handles custom rarity scaling (e.g. Esoteric) and ensures proper Curios application.
      */
     public static Multimap<Attribute, AttributeModifier> getSoulAttributeModifiers(ItemStack stack, UUID slotUuid) {
         Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
@@ -102,22 +184,38 @@ public class SoulAffixHelper {
 
         Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(stack);
         int index = 0;
+        Set<String> addedNames = new HashSet<>();
 
         for (AffixInstance inst : affixes.values()) {
             Affix affix = inst.affix().get();
             if (affix == null) continue;
 
-            LootRarity rarity = inst.rarity().get();
+            LootRarity originalRarity = inst.rarity().get();
+            LootRarity effectiveRarity = getEffectiveRarity(affix, originalRarity);
             float level = inst.level();
 
-            for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.CHEST}) {
+            // Calculate scaling factor if original rarity is higher than effective rarity
+            double scale = 1.0;
+            if (originalRarity != null && effectiveRarity != null && originalRarity.ordinal() > effectiveRarity.ordinal()) {
+                int tierDiff = originalRarity.ordinal() - effectiveRarity.ordinal();
+                scale = 1.0 + (tierDiff * 0.15); // +15% per tier above effective
+            }
+
+            final double finalScale = scale;
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
                 int finalIndex = index;
-                affix.addModifiers(stack, rarity, level, slot, (attr, mod) -> {
-                    UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex);
+                affix.addModifiers(stack, effectiveRarity, level, slot, (attr, mod) -> {
+                    String key = attr.getDescriptionId() + ":" + mod.getOperation().name() + ":" + mod.getName();
+                    if (!addedNames.add(key)) {
+                        return; // Prevent duplicate modifiers for multiple slots
+                    }
+
+                    UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex + key.hashCode());
+                    double scaledAmount = mod.getAmount() * finalScale;
                     AttributeModifier curioMod = new AttributeModifier(
                             modUuid,
                             "Soul Affix: " + mod.getName(),
-                            mod.getAmount(),
+                            scaledAmount,
                             mod.getOperation()
                     );
                     modifiers.put(attr, curioMod);
@@ -126,5 +224,94 @@ public class SoulAffixHelper {
             }
         }
         return modifiers;
+    }
+
+    // ==========================================
+    // Safe Invocation Helpers for Affix Effects
+    // ==========================================
+
+    public static int getSafeDamageProtection(Affix affix, ItemStack soul, LootRarity rarity, float level, DamageSource source) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            return affix.getDamageProtection(soul, eff, level, source);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix getDamageProtection: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    public static float getSafeDamageBonus(Affix affix, ItemStack soul, LootRarity rarity, float level, MobType mobType) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            return affix.getDamageBonus(soul, eff, level, mobType);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix getDamageBonus: {}", e.getMessage());
+            return 0.0f;
+        }
+    }
+
+    public static float safeOnHurt(Affix affix, ItemStack soul, LootRarity rarity, float level, DamageSource source, LivingEntity entity, float damage) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            return affix.onHurt(soul, eff, level, source, entity, damage);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix onHurt: {}", e.getMessage());
+            return damage;
+        }
+    }
+
+    public static void safeDoPostHurt(Affix affix, ItemStack soul, LootRarity rarity, float level, LivingEntity victim, Entity attacker) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            affix.doPostHurt(soul, eff, level, victim, attacker);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix doPostHurt: {}", e.getMessage());
+        }
+    }
+
+    public static void safeDoPostAttack(Affix affix, ItemStack soul, LootRarity rarity, float level, LivingEntity attacker, Entity target) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            affix.doPostAttack(soul, eff, level, attacker, target);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix doPostAttack: {}", e.getMessage());
+        }
+    }
+
+    public static float safeOnShieldBlock(Affix affix, ItemStack soul, LootRarity rarity, float level, LivingEntity blocker, DamageSource source, float blocked) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            return affix.onShieldBlock(soul, eff, level, blocker, source, blocked);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix onShieldBlock: {}", e.getMessage());
+            return blocked;
+        }
+    }
+
+    public static void safeOnArrowFired(Affix affix, ItemStack soul, LootRarity rarity, float level, LivingEntity shooter, AbstractArrow arrow) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            affix.onArrowFired(soul, eff, level, shooter, arrow);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix onArrowFired: {}", e.getMessage());
+        }
+    }
+
+    public static void safeOnArrowImpact(Affix affix, LootRarity rarity, float level, AbstractArrow arrow, HitResult result, HitResult.Type type) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            affix.onArrowImpact(arrow, eff, level, result, type);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix onArrowImpact: {}", e.getMessage());
+        }
+    }
+
+    public static void safeOnBlockBreak(Affix affix, ItemStack soul, LootRarity rarity, float level, Player player, LevelAccessor levelAccessor, BlockPos pos, BlockState state) {
+        try {
+            LootRarity eff = getEffectiveRarity(affix, rarity);
+            affix.onBlockBreak(soul, eff, level, player, levelAccessor, pos, state);
+        } catch (Exception e) {
+            ApotheosisSelfAffix.LOGGER.debug("Error in affix onBlockBreak: {}", e.getMessage());
+        }
     }
 }

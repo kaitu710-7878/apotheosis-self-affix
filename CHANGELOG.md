@@ -1,5 +1,35 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.5] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **ソケットのみ付与・アフィックス非表示の根本解決:**
+    - `SOUL_CATEGORY` に全装備スロット（`EquipmentSlot.values()`）を割り当て、Apotheosis内部のスロット適合判定で属性アフィックス（`AttributeAffix`）が確実に適用されるよう修正。
+    - `SoulItem` のツールチップ描画を大幅強化。魂に付与されたアフィックス効果（Ability）および属性加護（攻撃力、移動速度、防御力などの各種Attribute）の数値を美しく一覧表示するように改善。
+  - **エソテリック（Esoteric）等カスタムレアリティの完全対応:**
+    - Apotheotic Additions や Esoteric Reforging が追加する独自高位レアリティ（`esoteric`, `artifact`, `heirloom` 等）において、バニラApotheosisのアフィックスが安全に適用されるようフォールバックレアリティ機構（`getEffectiveRarity`）を実装。
+    - 上位レアリティにおけるステータス自動スケーリング処理を導入（下位アフィックス値から階層差に応じたボーナス加算）。
+  - **アフィックス効果発動の完全網羅 & バグ修正:**
+    - 攻撃時ダメージ増加処理で攻撃者自身の魂（`attackerSoul`）を参照するように修正。
+    - 盾防御アフィックス（`safeOnShieldBlock`）、弓射撃アフィックス（`safeOnArrowFired`）、矢命中アフィックス（`safeOnArrowImpact`）のハンドラを追加し、武器・防具の全アフィックスがプレイヤーに宿るように拡充。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Resolved Missing Affixes / Only Sockets Applied Issue:**
+    - Assigned all equipment slots (`EquipmentSlot.values()`) to `SOUL_CATEGORY`, ensuring Apotheosis's internal slot matching successfully applies all `AttributeAffix` modifiers.
+    - Heavily enhanced `SoulItem` hover tooltip rendering to clearly list both ability affix descriptions and attribute modifiers (attack damage, speed, armor, etc.) with custom color coding.
+  - **Full Support for Custom Rarities (Esoteric, Artifact, Heirloom):**
+    - Implemented a smart fallback rarity resolver (`getEffectiveRarity`) allowing standard Apotheosis affixes to be rolled and applied seamlessly under custom tiers introduced by Apotheotic Additions and Esoteric Reforging.
+    - Added dynamic attribute scaling for higher tiers exceeding base affix definitions.
+  - **Complete Affix Trigger Coverage & Bug Fixes:**
+    - Fixed attacker soul reference bug in offensive damage bonus calculation.
+    - Added event hooks for shield blocking (`safeOnShieldBlock`), arrow shooting (`safeOnArrowFired`), and projectile impacts (`safeOnArrowImpact`), fully bridging all weapon and armor behaviors to the equipped soul.
+
+---
+
 ## [1.0.0-alpha.4] - 2026-10-31
 
 ### 日本語 (Japanese)

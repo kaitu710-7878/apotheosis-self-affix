@@ -4,5 +4,6 @@
   "curios.modifiers.soul": "魂スロットに装備時:",
   "tooltip.apotheosis_self_affix.soul_desc": "魂スロットに装備され、付与されたアフィックスを直接プレイヤーへ適用します。",
   "tooltip.apotheosis_self_affix.keep_on_death": "プレイヤーの魂に刻印されています（死亡時も保持）",
+  "tooltip.apotheosis_self_affix.attributes_header": "魂の属性加護:",
   "affix.apotheosis_self_affix.durable_xp_substitute": "経験値獲得量 +%s%% (耐久力消費免除の代用効果)"
 }

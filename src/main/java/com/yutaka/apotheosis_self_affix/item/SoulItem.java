@@ -10,6 +10,7 @@ import dev.shadowsoffire.apotheosis.adventure.affix.effect.DurableAffix;
 import dev.shadowsoffire.apotheosis.adventure.loot.LootRarity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -23,11 +24,11 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class SoulItem extends Item implements ICurioItem {
+
+    private static final UUID DUMMY_UUID = UUID.fromString("11111111-2222-3333-4444-555555555555");
 
     public SoulItem() {
         super(new Item.Properties()
@@ -61,20 +62,56 @@ public class SoulItem extends Item implements ICurioItem {
             tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.keep_on_death").withStyle(ChatFormatting.LIGHT_PURPLE));
         }
 
-        // Show Durable affix conversion to XP bonus
         if (AffixHelper.hasAffixes(stack)) {
+            dev.shadowsoffire.placebo.reload.DynamicHolder<LootRarity> rarityHolder = AffixHelper.getRarity(stack);
+            LootRarity rarity = rarityHolder != null ? rarityHolder.get() : null;
             Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(stack);
+
+            tooltips.add(Component.empty());
+
+            // 1. Ability affixes description
             for (AffixInstance inst : affixes.values()) {
-                if (inst.affix().get() instanceof DurableAffix durable) {
-                    LootRarity rarity = inst.rarity().get();
+                Affix affix = inst.affix().get();
+                if (affix == null) continue;
+
+                if (affix instanceof DurableAffix durable) {
                     float lvl = inst.level();
                     float durabilityBonus = durable.getDurabilityBonusPercentage(stack, rarity, lvl, null);
                     float xpBonus = (float) (durabilityBonus * 100.0f * ModConfig.DURABLE_XP_MULTIPLIER.get());
                     String formatted = String.format("%.1f", xpBonus);
                     tooltips.add(Component.translatable("affix.apotheosis_self_affix.durable_xp_substitute", formatted).withStyle(ChatFormatting.GREEN));
+                } else {
+                    MutableComponent desc = inst.getDescription();
+                    if (desc != null && !desc.getString().isEmpty()) {
+                        tooltips.add(desc);
+                    }
+                }
+            }
+
+            // 2. Attribute Modifiers explicitly listed for Curios tooltips
+            Multimap<Attribute, AttributeModifier> modifiers = SoulAffixHelper.getSoulAttributeModifiers(stack, DUMMY_UUID);
+            if (!modifiers.isEmpty()) {
+                tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.attributes_header").withStyle(ChatFormatting.GOLD));
+                for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entries()) {
+                    Attribute attr = entry.getKey();
+                    AttributeModifier mod = entry.getValue();
+                    double amount = mod.getAmount();
+                    if (Math.abs(amount) < 0.0001) continue;
+
+                    String valueStr;
+                    if (mod.getOperation() == AttributeModifier.Operation.ADDITION) {
+                        valueStr = (amount > 0 ? "+" : "") + String.format(Locale.ROOT, "%.1f", amount);
+                    } else {
+                        valueStr = (amount > 0 ? "+" : "") + String.format(Locale.ROOT, "%.1f%%", amount * 100.0);
+                    }
+
+                    tooltips.add(Component.literal("  " + valueStr + " ")
+                            .withStyle(amount > 0 ? ChatFormatting.BLUE : ChatFormatting.RED)
+                            .append(Component.translatable(attr.getDescriptionId()).withStyle(ChatFormatting.GRAY)));
                 }
             }
         }
+
         super.appendHoverText(stack, level, tooltips, flag);
     }
 
