@@ -1,5 +1,27 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.7] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **ツールチップで防具アフィックス・特殊能力が表示されない根本原因の完全解消:**
+    - `AffixHelperMixin` を実装。Apotheosisの `AffixHelper.getAffixesImpl` が内部のカテゴリ検証（`canApplyTo`）によって `SoulItem` のアフィックスを空として破棄していた重大な問題を解消。NBTに保存された全アフィックスが正常に復元され、Apotheosis標準のツールチップ描画、防具アフィックス能力、属性加護が100%確実にツールチップに描画されるよう修正。
+  - **魂の救済生成仕様の復元と上書き防止の調和:**
+    - ユーザー指定の「ロスト時や回収困難時の救済措置」を維持。プレイヤーが魂スロットにもインベントリにも魂を持っていない状態の場合、自動的に新規魂を魂スロットに補充。
+    - 既存の装備中アフィックス済み魂に対する上書きは厳格に防止（スロットが占有されている場合は一切の操作を行わない安全設計）。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Complete Resolution of Missing Armor Affixes / Abilities on Tooltips:**
+    - Implemented `AffixHelperMixin` into Apotheosis's `AffixHelper.getAffixesImpl` to resolve the root cause where `SoulItem` affixes were being discarded during category verification (`canApplyTo`). All affixes are now cleanly restored from NBT, allowing Apotheosis's native tooltip rendering, defensive effects, and attributes to display properly.
+  - **Restored Lost/Drop Relief Mechanism While Safeguarding Affixed Souls:**
+    - Preserved the recovery mechanism per user specification: if a player has lost their soul or dropped it out of reach (no soul in slot or inventory), a new soul is automatically supplied to the empty slot.
+    - Strictly ensured existing equipped souls are never overwritten.
+
+---
+
 ## [1.0.0-alpha.6] - 2026-10-31
 
 ### 日本語 (Japanese)
