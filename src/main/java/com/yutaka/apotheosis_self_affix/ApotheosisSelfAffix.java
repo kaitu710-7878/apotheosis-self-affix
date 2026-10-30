@@ -45,10 +45,12 @@ public class ApotheosisSelfAffix {
 
     private void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            // Register custom LootCategory for Soul with all equipment slots to ensure attribute modifiers can match
-            EquipmentSlot[] allSlots = EquipmentSlot.values();
-            SOUL_CATEGORY = LootCategory.register(null, "soul", stack -> stack.is(SOUL.get()), allSlots);
-            LOGGER.info("Registered LootCategory 'soul' with all equipment slots for Apotheosis Self Affix.");
+            // Register custom LootCategory for Soul with NO vanilla equipment slots.
+            // Soul is strictly a Curios accessory, so vanilla slots must be empty
+            // to prevent duplicate "When on Head/Chest/Legs/Feet" tooltips.
+            EquipmentSlot[] noSlots = new EquipmentSlot[0];
+            SOUL_CATEGORY = LootCategory.register(null, "soul", stack -> stack.is(SOUL.get()), noSlots);
+            LOGGER.info("Registered LootCategory 'soul' with no vanilla equipment slots for Apotheosis Self Affix.");
         });
     }
 

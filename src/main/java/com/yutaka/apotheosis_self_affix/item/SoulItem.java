@@ -29,8 +29,6 @@ import java.util.*;
 
 public class SoulItem extends Item implements ICurioItem {
 
-    private static final UUID DUMMY_UUID = UUID.fromString("11111111-2222-3333-4444-555555555555");
-
     public SoulItem() {
         super(new Item.Properties()
                 .stacksTo(1)
@@ -57,6 +55,13 @@ public class SoulItem extends Item implements ICurioItem {
     }
 
     @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(net.minecraft.world.entity.EquipmentSlot slot, ItemStack stack) {
+        // Explicitly return empty multimap for all vanilla equipment slots (head, chest, legs, feet, mainhand, offhand)
+        // because Soul is purely a Curios accessory. This prevents duplicate slot tooltip sections.
+        return com.google.common.collect.ImmutableMultimap.of();
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
         tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.soul_desc").withStyle(ChatFormatting.DARK_AQUA));
         if (ModConfig.KEEP_ON_DEATH.get()) {
@@ -70,7 +75,7 @@ public class SoulItem extends Item implements ICurioItem {
 
             tooltips.add(Component.empty());
 
-            // 1. Explicitly render all Ability and Armor Affixes descriptions
+            // Render all Ability and Armor Affixes descriptions (Damage reduction, potions, abilities, etc.)
             for (AffixInstance inst : affixes.values()) {
                 Affix affix = inst.affix().get();
                 if (affix == null) continue;
@@ -84,36 +89,12 @@ public class SoulItem extends Item implements ICurioItem {
                 } else {
                     MutableComponent desc = inst.getDescription();
                     if (desc != null && !desc.getString().isEmpty()) {
-                        // Avoid adding if already present in tooltips (from ItemTooltipEvent)
                         String descText = desc.getString();
                         boolean alreadyHas = tooltips.stream().anyMatch(c -> c.getString().equals(descText));
                         if (!alreadyHas) {
                             tooltips.add(desc);
                         }
                     }
-                }
-            }
-
-            // 2. Explicitly render all Attribute Modifiers on tooltip
-            Multimap<Attribute, AttributeModifier> modifiers = SoulAffixHelper.getSoulAttributeModifiers(stack, DUMMY_UUID);
-            if (!modifiers.isEmpty()) {
-                tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.attributes_header").withStyle(ChatFormatting.GOLD));
-                for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entries()) {
-                    Attribute attr = entry.getKey();
-                    AttributeModifier mod = entry.getValue();
-                    double amount = mod.getAmount();
-                    if (Math.abs(amount) < 0.0001) continue;
-
-                    String valueStr;
-                    if (mod.getOperation() == AttributeModifier.Operation.ADDITION) {
-                        valueStr = (amount > 0 ? "+" : "") + String.format(Locale.ROOT, "%.1f", amount);
-                    } else {
-                        valueStr = (amount > 0 ? "+" : "") + String.format(Locale.ROOT, "%.1f%%", amount * 100.0);
-                    }
-
-                    tooltips.add(Component.literal("  " + valueStr + " ")
-                            .withStyle(amount > 0 ? ChatFormatting.BLUE : ChatFormatting.RED)
-                            .append(Component.translatable(attr.getDescriptionId()).withStyle(ChatFormatting.GRAY)));
                 }
             }
         }

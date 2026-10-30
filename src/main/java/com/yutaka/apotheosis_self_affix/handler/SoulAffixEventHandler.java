@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -237,6 +238,17 @@ public class SoulAffixEventHandler {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Prevents any vanilla equipment slot modifiers from being attached to the Soul item.
+     * Souls are purely Curios accessories, eliminating duplicate "When on Head/Chest/Legs/Feet" tooltips.
+     */
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onItemAttributeModifier(ItemAttributeModifierEvent event) {
+        if (event.getItemStack().getItem() instanceof com.yutaka.apotheosis_self_affix.item.SoulItem) {
+            event.clearModifiers();
         }
     }
 

@@ -1,5 +1,27 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.9] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **重複する頭/胴体/レギンス/靴スロット属性ツールチップの完全除去:**
+    - `ApotheosisSelfAffix` における `SOUL_CATEGORY` の登録スロットを空配列（`new EquipmentSlot[0]`）に戻し、バニラの全装備スロット（頭/胴体/脚/足）が登録されていた名残を解消。
+    - `SoulItem.getAttributeModifiers(EquipmentSlot, ItemStack)` を明示的にオーバーライドし、バニラスロット用モディファイアとして常に空を返すよう修正。
+    - `SoulAffixEventHandler` に `ItemAttributeModifierEvent` ハンドラを追加し、Soul アイテムに対するバニラスロット用モディファイアの割り込み注入を完全に破棄（`event.clearModifiers()`）。
+    - これにより、ツールチップが縦に極端に膨張して最上部の物理ダメージ軽減やポーション付与などのアフィックスが見切れる問題を完全に解消し、Curios 魂スロット用の属性のみをスッキリ表示するように改善。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Complete Removal of Redundant Head/Chest/Legs/Feet Slot Attribute Tooltips:**
+    - Reverted `SOUL_CATEGORY` registration slots to an empty array (`new EquipmentSlot[0]`), cleaning up the legacy behavior that registered all vanilla equipment slots.
+    - Explicitly overrode `SoulItem.getAttributeModifiers(EquipmentSlot, ItemStack)` to always return an empty multimap for vanilla equipment slots.
+    - Added an `ItemAttributeModifierEvent` subscriber in `SoulAffixEventHandler` that completely clears any vanilla slot modifiers injected into `SoulItem` via `event.clearModifiers()`.
+    - Resolved the critical screen-overflow issue where tooltips were bloated by four vanilla slot sections, hiding top-level defensive ability affixes (damage reductions, potion effects). Only the clean Curios Soul slot attributes and ability descriptions are now displayed.
+
+---
+
 ## [1.0.0-alpha.8] - 2026-10-31
 
 ### 日本語 (Japanese)
