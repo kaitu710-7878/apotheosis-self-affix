@@ -1,0 +1,8 @@
+{
+  "item.apotheosis_self_affix.soul": "Soul",
+  "curios.identifier.soul": "Soul",
+  "curios.modifiers.soul": "When equipped in Soul slot:",
+  "tooltip.apotheosis_self_affix.soul_desc": "Equipped in the Soul slot. Channels its affixes directly into the player.",
+  "tooltip.apotheosis_self_affix.keep_on_death": "Bound to your essence (Preserved across death)",
+  "affix.apotheosis_self_affix.durable_xp_substitute": "%s%% Bonus Experience Gained (Durability substitute)"
+}
