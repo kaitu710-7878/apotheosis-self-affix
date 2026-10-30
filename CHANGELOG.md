@@ -1,5 +1,31 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.12] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **Curios 魂スロット属性（AttributeModifier）の未適用・非表示問題の根本解消:**
+    - 前バージョンのスロット整理により `SOUL_CATEGORY` の登録スロットが空配列になった影響で、Apotheosis の `AttributeAffix.addModifiers` が「スロット不一致」と判定し属性モディファイアを一切発行しなくなっていた根本原因を特定。
+    - `SoulAffixHelper.getSoulAttributeModifiers` を刷新：
+      1. `AttributeAffix` の内部 `modifiers` テーブルから、対象レアリティ（およびエソテリック等のカスタムレアリティ補正）に応じた `Attribute`、`Operation`、計算済み数値をリフレクションで直接抽出するロジックを実装。
+      2. リフレクション失敗時の安全策として、各装備スロットの代表スタック（ダイヤ剣、ダイヤ防具等）を用いて確実にアフィックス属性を取得するフォールバックを併装。
+    - これにより、Curios 魂スロットに装備した際の属性ステータス（攻撃力、体力、移動速度など）がプレイヤーへ100%確実に反映されるようになり、Curios標準の「魂スロットに装備時:」ツールチップも確実に表示されるように修正。
+    - `SoulItem.appendHoverText` 側の手動描画コードを整理し、Curiosネイティブの表示システムに完全一元化。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Fundamental Fix for Curios Soul Slot Attribute Modifiers Missing & Hidden Tooltip:**
+    - Identified root cause: suppressing vanilla slots in `SOUL_CATEGORY` caused Apotheosis's `AttributeAffix.addModifiers` to evaluate slots as empty, preventing any attribute modifiers from being generated.
+    - Revamped `SoulAffixHelper.getSoulAttributeModifiers`:
+      1. Implemented direct extraction via reflection from `AttributeAffix`'s internal modifier map, retrieving target `Attribute`, `Operation`, and scaled values directly regardless of category slot filters.
+      2. Added robust fallback using representative item stacks (diamond sword, diamond armor) to reliably capture affix modifiers across all slots.
+    - Properly channels all attribute modifiers (attack damage, max health, speed, etc.) to the player when equipped in the Curios Soul slot, and restores standard Curios "When equipped in Soul slot:" tooltips.
+    - Cleaned up manual rendering in `SoulItem.appendHoverText`, consolidating cleanly into Curios's native tooltip pipeline.
+
+---
+
 ## [1.0.0-alpha.11] - 2026-10-31
 
 ### 日本語 (Japanese)

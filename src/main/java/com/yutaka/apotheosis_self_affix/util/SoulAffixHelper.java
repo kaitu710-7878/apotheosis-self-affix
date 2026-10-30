@@ -209,6 +209,16 @@ public class SoulAffixHelper {
         return map;
     }
 
+    private static java.lang.reflect.Field ATTRIBUTE_AFFIX_MODIFIERS_FIELD = null;
+
+    static {
+        try {
+            ATTRIBUTE_AFFIX_MODIFIERS_FIELD = dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix.class.getDeclaredField("modifiers");
+            ATTRIBUTE_AFFIX_MODIFIERS_FIELD.setAccessible(true);
+        } catch (Exception ignored) {
+        }
+    }
+
     /**
      * Aggregates all attribute modifiers from all affixes on the Soul item.
      * Handles custom rarity scaling (e.g. Esoteric) and ensures proper Curios application.
@@ -239,28 +249,78 @@ public class SoulAffixHelper {
             }
 
             final double finalScale = scale;
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                int finalIndex = index;
-                affix.addModifiers(stack, effectiveRarity, level, slot, (attr, mod) -> {
-                    String key = attr.getDescriptionId() + ":" + mod.getOperation().name() + ":" + mod.getName();
-                    if (!addedNames.add(key)) {
-                        return; // Prevent duplicate modifiers for multiple slots
-                    }
+            boolean resolved = false;
 
-                    UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex + key.hashCode());
-                    double scaledAmount = mod.getAmount() * finalScale;
-                    AttributeModifier curioMod = new AttributeModifier(
-                            modUuid,
-                            "Soul Affix: " + mod.getName(),
-                            scaledAmount,
-                            mod.getOperation()
-                    );
-                    modifiers.put(attr, curioMod);
-                });
-                index++;
+            // Strategy 1: Direct extraction from AttributeAffix via reflection
+            // This directly gets the attribute, operation, and computed value without relying on category slot matching.
+            if (affix instanceof dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix && ATTRIBUTE_AFFIX_MODIFIERS_FIELD != null) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<LootRarity, dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix.ModifierInst> map =
+                            (Map<LootRarity, dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix.ModifierInst>) ATTRIBUTE_AFFIX_MODIFIERS_FIELD.get(affix);
+                    if (map != null) {
+                        dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix.ModifierInst modInst = map.get(effectiveRarity);
+                        if (modInst != null && modInst.attr() != null) {
+                            Attribute attr = modInst.attr();
+                            AttributeModifier.Operation op = modInst.op();
+                            double rawValue = modInst.valueFactory().get(level);
+                            double scaledAmount = rawValue * finalScale;
+                            String key = attr.getDescriptionId() + ":" + op.name() + ":" + affix.getId();
+                            if (addedNames.add(key)) {
+                                UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + index + key.hashCode());
+                                AttributeModifier curioMod = new AttributeModifier(
+                                        modUuid,
+                                        "Soul Affix: " + affix.getId().getPath(),
+                                        scaledAmount,
+                                        op
+                                );
+                                modifiers.put(attr, curioMod);
+                                resolved = true;
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
             }
+
+            // Strategy 2: Fallback using representative dummy item stacks for each equipment slot.
+            // Bypasses the fact that LootCategory.forItem(SoulItem).getSlots() is empty.
+            if (!resolved) {
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    ItemStack dummyStack = getRepresentativeStack(slot);
+                    int finalIndex = index;
+                    affix.addModifiers(dummyStack, effectiveRarity, level, slot, (attr, mod) -> {
+                        String key = attr.getDescriptionId() + ":" + mod.getOperation().name() + ":" + mod.getName();
+                        if (!addedNames.add(key)) {
+                            return; // Prevent duplicate modifiers
+                        }
+
+                        UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex + key.hashCode());
+                        double scaledAmount = mod.getAmount() * finalScale;
+                        AttributeModifier curioMod = new AttributeModifier(
+                                modUuid,
+                                "Soul Affix: " + mod.getName(),
+                                scaledAmount,
+                                mod.getOperation()
+                        );
+                        modifiers.put(attr, curioMod);
+                    });
+                }
+            }
+            index++;
         }
         return modifiers;
+    }
+
+    private static ItemStack getRepresentativeStack(EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> new ItemStack(net.minecraft.world.item.Items.DIAMOND_HELMET);
+            case CHEST -> new ItemStack(net.minecraft.world.item.Items.DIAMOND_CHESTPLATE);
+            case LEGS -> new ItemStack(net.minecraft.world.item.Items.DIAMOND_LEGGINGS);
+            case FEET -> new ItemStack(net.minecraft.world.item.Items.DIAMOND_BOOTS);
+            case MAINHAND -> new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+            case OFFHAND -> new ItemStack(net.minecraft.world.item.Items.SHIELD);
+        };
     }
 
     // ==========================================
