@@ -8,7 +8,9 @@
     "LootControllerMixin",
     "AffixHelperMixin",
     "DurableAffixMixin",
-    "AttributeAffixMixin"
+    "AttributeAffixMixin",
+    "AffixInstanceMixin",
+    "PotionAffixMixin"
   ],
   "client": [],
   "injectors": {

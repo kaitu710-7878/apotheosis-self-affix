@@ -19,7 +19,8 @@
     - 魂アイテムのツールチップに「魂スロットに装備時:」の見出しで属性加護をバニラスタイルで直接描画。Curiosのツールチップハンドラーの挙動に左右されない安定表示を実現。
   - **安定化修正 (Crash & GUI Layout Fixes):**
     - `AttributeAffixMixin` を実装し、Esoteric Reforging 等のカスタムレアリティ適用時に発生していた NPE（`Cannot read field "attr" because "modif" is null`）を完全にガード・防止。
-    - 魂の祭壇 GUI テクスチャを Minecraft の標準仕様である 256×256 ピクセル（176×166 表示領域）に完全準拠させ、スロットやアイコンの位置ズレ・表示崩れを解消。
+    - `AffixInstanceMixin` および `PotionAffixMixin` を新設。エソテリック（Esoteric）やエンシェント（Ancient）等の上位カスタム階級における `PotionAffix.getDescription`（および全アフィックスツールチップ処理）での未登録レアリティ参照による NPE クラッシュを根本から解消。サポートされる有効レアリティ（Mythic等）への自動フォールバック表示を実現。
+    - 魂の祭壇 GUI テクスチャの下部インベントリ領域をバニラ公式の `dispenser.png` から直接流用・合成し、AI生成感を完全に排除した純粋なバニラ標準のインベントリスロット・陰影表現に刷新。
 
 ---
 
@@ -40,7 +41,8 @@
     - Clean, native rendering of "When equipped in Soul slot:" attributes directly in the tooltip, independent of any external accessory handlers.
   - **Stability & Layout Fixes:**
     - Implemented `AttributeAffixMixin` to safely guard against NPE (`Cannot read field "attr" because "modif" is null`) when processing custom tiers like Esoteric Reforging.
-    - Reconstructed GUI texture to strictly comply with vanilla's 256x256 pixel sheet standard (176x166 viewport), fixing all slot offsets and texture stretching.
+    - Implemented `AffixInstanceMixin` and `PotionAffixMixin` to resolve NPE crashes in `PotionAffix.getDescription` when handling high-tier custom rarities (Esoteric, Ancient), automatically falling back to effective supported tiers (Mythic).
+    - Directly composited authentic vanilla inventory textures from `dispenser.png` into the bottom half of the Soul Altar GUI, eliminating the AI-generated look and providing 100% vanilla-faithful slots and shading.
 
 ---
 
