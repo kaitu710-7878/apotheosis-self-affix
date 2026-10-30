@@ -18,8 +18,11 @@ public class SoulScreen extends AbstractContainerScreen<SoulMenu> {
     public SoulScreen(SoulMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.imageWidth = 176;
-        this.imageHeight = 146;
-        this.inventoryLabelY = 52;
+        this.imageHeight = 166;
+        this.titleLabelX = 8;
+        this.titleLabelY = 6;
+        this.inventoryLabelX = 8;
+        this.inventoryLabelY = 72;
     }
 
     @Override
@@ -30,12 +33,12 @@ public class SoulScreen extends AbstractContainerScreen<SoulMenu> {
         int left = this.leftPos;
         int top = this.topPos;
 
-        // Render main GUI background
+        // Render main GUI background (vanilla texture size is 256x256, container is 176x166)
         guiGraphics.blit(TEXTURE, left, top, 0, 0, this.imageWidth, this.imageHeight);
 
-        // If the soul slot (slot 0) is empty, render the ghostly soul icon
+        // If the soul slot (slot 0) is empty, render the ghostly soul icon inside the slot at (80, 20)
         if (!this.menu.getSlot(0).hasItem()) {
-            guiGraphics.blit(SLOT_ICON, left + 80, top + 26, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(SLOT_ICON, left + 80, top + 20, 0, 0, 16, 16, 16, 16);
         }
     }
 

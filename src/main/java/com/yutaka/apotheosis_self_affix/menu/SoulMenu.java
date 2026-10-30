@@ -28,8 +28,8 @@ public class SoulMenu extends AbstractContainerMenu {
                 .map(ISoulHandler::getItemHandler)
                 .orElseGet(() -> new ItemStackHandler(1));
 
-        // Slot 0: Dedicated Soul Slot (center: 80, 26)
-        this.addSlot(new SlotItemHandler(soulHandler, 0, 80, 26) {
+        // Slot 0: Dedicated Soul Slot (center: 80, 20)
+        this.addSlot(new SlotItemHandler(soulHandler, 0, 80, 20) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.getItem() instanceof SoulItem;
@@ -47,16 +47,16 @@ public class SoulMenu extends AbstractContainerMenu {
             }
         });
 
-        // Player Inventory (3 rows of 9 slots)
+        // Player Inventory (3 rows of 9 slots at x=8, y=84)
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 9; ++col) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 64 + row * 18));
+                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
             }
         }
 
-        // Player Hotbar (9 slots)
+        // Player Hotbar (9 slots at x=8, y=142)
         for (int col = 0; col < 9; ++col) {
-            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 122));
+            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
         }
     }
 
