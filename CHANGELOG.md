@@ -1,5 +1,19 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.4] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 (Fixes):**
+  - リフォージ台（Esoteric Reforging Table含む）で魂アイテムをリフォージした際、Apotheosisのシャッフル処理（`Collections.shuffle`）で `UnsupportedOperationException` が発生しクラッシュする不具合を修正（Mixinが返却する利用可能アフィックスリストを不変リストから可変の `ArrayList` に変更）。
+
+---
+
+### English
+- **Fixes:**
+  - Fixed a crash (`UnsupportedOperationException`) when reforging the Soul in reforging tables (including Esoteric Reforging Table) during Apotheosis's affix shuffling (`Collections.shuffle`) by wrapping the available affixes list in a mutable `ArrayList`.
+
+---
+
 ## [1.0.0-alpha.3] - 2026-10-31
 
 ### 日本語 (Japanese)

@@ -30,13 +30,15 @@ public class LootControllerMixin {
     ) {
         if (stack.getItem() instanceof SoulItem) {
             @SuppressWarnings({"unchecked", "rawtypes"})
-            List<DynamicHolder<? extends Affix>> available = (List) AffixHelper.byType(type).stream()
-                    .filter(holder -> {
-                        Affix affix = holder.get();
-                        return affix != null && SoulAffixHelper.canAffixApplyToSoul(affix, stack, rarity);
-                    })
-                    .filter(holder -> !currentAffixes.contains(holder))
-                    .toList();
+            List<DynamicHolder<? extends Affix>> available = new java.util.ArrayList<>(
+                    (List) AffixHelper.byType(type).stream()
+                            .filter(holder -> {
+                                Affix affix = holder.get();
+                                return affix != null && SoulAffixHelper.canAffixApplyToSoul(affix, stack, rarity);
+                            })
+                            .filter(holder -> !currentAffixes.contains(holder))
+                            .toList()
+            );
             cir.setReturnValue(available);
         }
     }
