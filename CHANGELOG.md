@@ -1,5 +1,25 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.10] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **アフィックス説明文の二重表示およびDurable（耐久力）表記の完全解消:**
+    - `DurableAffixMixin` を実装。Apotheosisの `DurableAffix.getDescription` および `getAugmentingText` に対して、魂アイテムの場合は本来の「耐久力XX%で消費しない」ではなく「耐久値消費の代用で+XX%経験値」を直接返すよう注入。
+    - `SoulItem.appendHoverText` から自前のアフィックス走査・描画コードを完全に削除。Apotheosis本来の描画パイプライン（`ItemTooltipEvent`）に一元化。
+    - これにより、Apotheosis標準のツールチップと当MODのツールチップが重なって二重表示されていた問題を根本から解消。反撃デバフ、採掘速度上昇、属性加護、耐久力の経験値代用ボーナスなど、全アフィックスが1回だけ美しく一貫して描画されるように改善。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Complete Resolution of Duplicate Affix Tooltips & Durable Affix Replacement:**
+    - Implemented `DurableAffixMixin` to inject into `DurableAffix.getDescription` and `getAugmentingText`. For `SoulItem`, it directly returns the "+XX% XP (Substitute for Durability)" component instead of the vanilla "Chance to not consume durability".
+    - Completely removed manual affix tooltip iteration from `SoulItem.appendHoverText`, consolidating all tooltip rendering into Apotheosis's native pipeline (`ItemTooltipEvent`).
+    - Fixed the tooltip duplication issue where both Apotheosis and custom mod tooltips were displayed simultaneously. All affixes (counter-attack debuffs, haste on mine, attributes, and converted durability XP bonuses) now render cleanly and unified without duplicates.
+
+---
+
 ## [1.0.0-alpha.9] - 2026-10-31
 
 ### 日本語 (Japanese)

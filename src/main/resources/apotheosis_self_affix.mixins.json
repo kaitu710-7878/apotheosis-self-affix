@@ -6,7 +6,8 @@
   "refmap": "apotheosis_self_affix.refmap.json",
   "mixins": [
     "LootControllerMixin",
-    "AffixHelperMixin"
+    "AffixHelperMixin",
+    "DurableAffixMixin"
   ],
   "client": [],
   "injectors": {
