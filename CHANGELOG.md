@@ -1,5 +1,23 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.11] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **Curios 魂スロット属性（ステータス加護）ツールチップの確実な復元:**
+    - バニラ4スロットの重複ツールチップを除去したことでCurios側の属性表示まで見えなくなっていた問題を解決。
+    - `SoulItem.appendHoverText` にて「魂スロットに装備時:」の見出しのもと、魂に付与された全属性モディファイア（攻撃力、体力、移動速度など）をバニラ標準の美しいフォーマット（青/赤）で1箇所に集約して確実に描画するよう改善。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Reliable Restoration of Curios Soul Slot Attribute Modifiers Tooltips:**
+    - Resolved the issue where attribute tooltips were completely hidden after suppressing redundant vanilla armor slot tooltips.
+    - Enhanced `SoulItem.appendHoverText` to cleanly render all soul attribute modifiers (Attack Damage, Max Health, Movement Speed, etc.) unified under the "When equipped in Soul slot:" header using standard vanilla formatting (blue/red).
+
+---
+
 ## [1.0.0-alpha.10] - 2026-10-31
 
 ### 日本語 (Japanese)
