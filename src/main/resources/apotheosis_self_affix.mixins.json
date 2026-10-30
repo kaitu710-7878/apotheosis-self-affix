@@ -10,7 +10,8 @@
     "DurableAffixMixin",
     "AttributeAffixMixin",
     "AffixInstanceMixin",
-    "PotionAffixMixin"
+    "PotionAffixMixin",
+    "DamageReductionAffixMixin"
   ],
   "client": [],
   "injectors": {

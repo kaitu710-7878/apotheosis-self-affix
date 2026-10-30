@@ -113,12 +113,15 @@ public class SoulAffixHelper {
         if (affix == null || rarity == null) return false;
         if (affix instanceof DurableAffix) return true;
 
-        for (LootCategory category : ALL_SOUL_CATEGORIES) {
-            try {
-                if (affix.canApplyTo(ItemStack.EMPTY, category, rarity)) {
-                    return true;
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            ItemStack dummy = getRepresentativeStack(slot);
+            for (LootCategory category : ALL_SOUL_CATEGORIES) {
+                try {
+                    if (affix.canApplyTo(dummy, category, rarity)) {
+                        return true;
+                    }
+                } catch (Exception ignored) {
                 }
-            } catch (Exception ignored) {
             }
         }
         return false;

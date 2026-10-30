@@ -1,6 +1,17 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
-## [1.1.0] - 2026-10-31
+## [1.1.0-alpha.2] - 2026-10-31
+
+### 日本語 (Japanese)
+- **Apothic Infinite 複数Tier・混在アフィックスの完全クラッシュ対策:**
+  - `DamageReductionAffixMixin` を新規追加し、ダメージ軽減系アフィックス（耐性等）が未定義の階級（Esoteric等）を参照する際に発生する NPE を防止。
+  - `AffixInstanceMixin` を強化し、ツールチップ生成時にサポート外の階級が存在する場合、全登録レアリティを降順でフォールバック探索し、例外発生時もクラッシュせず空コンポーネントを返す完全防御機構を実装。
+- **魂の祭壇 GUI のスロット座標・テクスチャ位置のピクセル完全同期:**
+  - `soul_inventory.png` の魂スロット枠および装飾ルーンの座標を 1px 単位で再調整し、内部スロット座標 (80, 20) およびゴーストアイコンの描画位置と完全に合致させました。
+
+---
+
+## [1.1.0-alpha.1] - 2026-10-31
 
 ### 日本語 (Japanese)
 - **大型アップデート: Curios からの完全脱却と独自「魂スロット」システムの実装 (Major Architecture Overhaul):**
