@@ -2,8 +2,15 @@
   "item.apotheosis_self_affix.soul": "魂",
   "curios.identifier.soul": "魂",
   "curios.modifiers.soul": "魂スロットに装備時:",
+  "gui.apotheosis_self_affix.soul_menu": "魂の祭壇",
+  "key.categories.apotheosis_self_affix": "Apotheosis Self Affix",
+  "key.apotheosis_self_affix.open_soul_menu": "魂画面を開く",
+  "tooltip.apotheosis_self_affix.open_soul_menu": "魂スロット画面を開く",
+  "tooltip.apotheosis_self_affix.soul_slot_header": "魂スロットに装備時:",
   "tooltip.apotheosis_self_affix.soul_desc": "魂スロットに装備され、付与されたアフィックスを直接プレイヤーへ適用します。",
   "tooltip.apotheosis_self_affix.keep_on_death": "プレイヤーの魂に刻印されています（死亡時も保持）",
   "tooltip.apotheosis_self_affix.attributes_header": "魂の属性加護:",
-  "affix.apotheosis_self_affix.durable_xp_substitute": "経験値獲得量 +%s%% (耐久力消費免除の代用効果)"
+  "affix.apotheosis_self_affix.durable_xp_substitute": "経験値獲得量 +%s%% (耐久力消費免除の代用効果)",
+  "message.apotheosis_self_affix.equipped": "魂を身体に宿した。",
+  "message.apotheosis_self_affix.swapped": "魂を入れ替えた。"
 }

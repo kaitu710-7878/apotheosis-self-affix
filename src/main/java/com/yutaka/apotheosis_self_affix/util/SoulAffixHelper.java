@@ -24,8 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.HitResult;
-import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.SlotResult;
+import com.yutaka.apotheosis_self_affix.capability.ISoulHandler;
+import com.yutaka.apotheosis_self_affix.capability.SoulCapabilityProvider;
 
 import java.util.*;
 
@@ -57,23 +57,15 @@ public class SoulAffixHelper {
     }
 
     /**
-     * Retrieves the equipped Soul item from the entity's Curios inventory.
+     * Retrieves the equipped Soul item from the entity's dedicated Soul capability.
      */
     public static ItemStack getEquippedSoul(LivingEntity entity) {
-        if (entity == null) {
-            return ItemStack.EMPTY;
+        if (entity instanceof Player player) {
+            return player.getCapability(SoulCapabilityProvider.SOUL_CAPABILITY)
+                    .map(ISoulHandler::getSoul)
+                    .orElse(ItemStack.EMPTY);
         }
-        return CuriosApi.getCuriosInventory(entity)
-                .map(inv -> {
-                    Optional<SlotResult> slot = inv.findCurio("soul", 0);
-                    if (slot.isPresent() && !slot.get().stack().isEmpty()) {
-                        return slot.get().stack();
-                    }
-                    return inv.findFirstCurio(ApotheosisSelfAffix.SOUL.get())
-                            .map(SlotResult::stack)
-                            .orElse(ItemStack.EMPTY);
-                })
-                .orElse(ItemStack.EMPTY);
+        return ItemStack.EMPTY;
     }
 
     /**

@@ -1,5 +1,43 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.0] - 2026-10-31
+
+### 日本語 (Japanese)
+- **大型アップデート: Curios からの完全脱却と独自「魂スロット」システムの実装 (Major Architecture Overhaul):**
+  - **Curios 依存の排除と独自スロット化:**
+    - 外部MOD（Curios API）の仕様や競合、スロットタグや属性ツールチップの影響を受けないよう、プレイヤーの永続Capabilityとして独自の1スロット「魂スロット（Soul Slot）」を実装。
+    - プレイヤー死亡時の魂保護（Keep on Death）を独自Capability内で完全に保証。
+  - **プレイヤーへの属性ステータス（AttributeModifier）常時直接適用:**
+    - 魂スロットに魂が装備された際、Apotheosisのアフィックス属性（体力増加、攻撃力増加、移動速度等）をプレイヤーの属性マップへダイレクトに一時修飾子（TransientModifier）として適用・解除するマネージャーを新設。
+  - **専用GUIおよびアクセシビリティの充実:**
+    - 専用GUI「魂の台座（Soul Altar Screen）」を実装。
+    - キーバインド（デフォルト `O` キー）でいつでも魂画面を開閉可能。
+    - サバイバルインベントリ画面に魂スロットを開くショートカットボタンを追加。
+    - 手に魂アイテムを持って右クリックすることで、魂スロットへ直接装着可能。
+    - `/soul` コマンドによるGUI表示にも対応。
+  - **完全自立型ツールチップ:**
+    - 魂アイテムのツールチップに「魂スロットに装備時:」の見出しで属性加護をバニラスタイルで直接描画。Curiosのツールチップハンドラーの挙動に左右されない安定表示を実現。
+
+---
+
+### English
+- **Major Update: Complete Independence from Curios with Dedicated "Soul Slot" System:**
+  - **Independence from Curios API:**
+    - Replaced Curios slot mechanics with a dedicated player-bound Forge Capability ("Soul Slot"), making the mod completely unaffected by Curios internal changes, slot tags, or attribute tooltip pipeline quirks.
+    - Full keep-on-death preservation handled natively via player capability cloning.
+  - **Direct Player Attribute Modifier Application:**
+    - Implemented a dedicated attribute manager that channels all Apotheosis affix attributes (Max Health, Attack Damage, Speed, etc.) directly into the player's attribute map as transient modifiers upon equipping/unequipping.
+  - **Dedicated GUI & Multiple Access Methods:**
+    - Implemented dedicated "Soul Altar" container GUI.
+    - Configurable keybind (default `O` key) to open the Soul GUI anytime.
+    - Added an open-soul-slot button directly to the vanilla survival inventory screen.
+    - Right-clicking with a Soul item in hand directly equips it into the Soul slot.
+    - Supported `/soul` chat command to open the GUI.
+  - **Independent Tooltip Rendering:**
+    - Clean, native rendering of "When equipped in Soul slot:" attributes directly in the tooltip, independent of any external accessory handlers.
+
+---
+
 ## [1.0.0-alpha.12] - 2026-10-31
 
 ### 日本語 (Japanese)
