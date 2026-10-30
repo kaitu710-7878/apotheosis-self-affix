@@ -11,6 +11,7 @@ import dev.shadowsoffire.apotheosis.adventure.loot.LootRarity;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -65,24 +66,37 @@ public class SoulItem extends Item implements ICurioItem {
         if (AffixHelper.hasAffixes(stack)) {
             DynamicHolder<LootRarity> rarityHolder = AffixHelper.getRarity(stack);
             LootRarity rarity = rarityHolder != null ? rarityHolder.get() : null;
-            Map<DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(stack);
+            Map<DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(stack);
 
-            // 1. Show Durable affix conversion to XP bonus
+            tooltips.add(Component.empty());
+
+            // 1. Explicitly render all Ability and Armor Affixes descriptions
             for (AffixInstance inst : affixes.values()) {
                 Affix affix = inst.affix().get();
+                if (affix == null) continue;
+
                 if (affix instanceof DurableAffix durable) {
                     float lvl = inst.level();
                     float durabilityBonus = durable.getDurabilityBonusPercentage(stack, rarity, lvl, null);
                     float xpBonus = (float) (durabilityBonus * 100.0f * ModConfig.DURABLE_XP_MULTIPLIER.get());
                     String formatted = String.format("%.1f", xpBonus);
                     tooltips.add(Component.translatable("affix.apotheosis_self_affix.durable_xp_substitute", formatted).withStyle(ChatFormatting.GREEN));
+                } else {
+                    MutableComponent desc = inst.getDescription();
+                    if (desc != null && !desc.getString().isEmpty()) {
+                        // Avoid adding if already present in tooltips (from ItemTooltipEvent)
+                        String descText = desc.getString();
+                        boolean alreadyHas = tooltips.stream().anyMatch(c -> c.getString().equals(descText));
+                        if (!alreadyHas) {
+                            tooltips.add(desc);
+                        }
+                    }
                 }
             }
 
-            // 2. Explicitly render all Attribute Modifiers on tooltip (for Curios slot display)
+            // 2. Explicitly render all Attribute Modifiers on tooltip
             Multimap<Attribute, AttributeModifier> modifiers = SoulAffixHelper.getSoulAttributeModifiers(stack, DUMMY_UUID);
             if (!modifiers.isEmpty()) {
-                tooltips.add(Component.empty());
                 tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.attributes_header").withStyle(ChatFormatting.GOLD));
                 for (Map.Entry<Attribute, AttributeModifier> entry : modifiers.entries()) {
                     Attribute attr = entry.getKey();

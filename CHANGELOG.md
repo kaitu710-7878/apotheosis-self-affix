@@ -1,5 +1,31 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.8] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **インベントリからCuriosスロットへの意図しない複製バグの完全修正:**
+    - `PlayerTickEvent` によるバックグラウンド自動移動・定期監視処理を完全に撤廃。インベントリ操作中やリフォージ台での作業中に勝手に裏でアイテムが移動・複製される挙動を解消。
+    - ログイン時およびリスポーン時において、プレイヤーが手持ちインベントリに魂を所持している場合はCuriosスロットへの強制装備や複製を行わず、プレイヤーの所持状態を尊重する仕様に整理。
+    - プレイヤーがスロットにもインベントリにも魂を所持していない場合（アイテム化して落下中、溶岩・奈落等でロスト時）のみ、救済措置として新規魂をスロットへ補充。
+  - **ツールチップ描画の多層フェイルセーフ化（防具アフィックス・属性の確実表示）:**
+    - `SoulAffixHelper.getAffixesSafe` を導入。Apotheosisのキャッシュや判定の有無に依存せず、アイテムのNBTから直接アフィックスおよび数値を100%確実に復元。
+    - `SoulItem.appendHoverText` で、防具アフィックス能力（物理ダメージ軽減、落下ダメージ軽減等の説明文）および属性加護（Attribute値）を直接ツールチップに描画する処理を強化。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Fixed Unintended Soul Duplication from Inventory to Curios:**
+    - Completely removed background tick monitoring (`PlayerTickEvent`) that caused synchronization desyncs and duplicated souls during inventory/reforging operations.
+    - Synchronized login/respawn logic to respect player inventory state: if the player already holds a soul in their regular inventory, it will no longer duplicate or force-move it.
+    - Relief soul is now strictly supplied only when completely devoid of any soul (lost to void/lava or dropped in world).
+  - **Multi-layered Fail-safe Tooltip Rendering (Armor Affixes & Attributes):**
+    - Introduced `SoulAffixHelper.getAffixesSafe` to ensure 100% reliable affix reconstruction directly from stack NBT data.
+    - Enhanced `SoulItem.appendHoverText` to directly render all defensive abilities (e.g. physical damage reduction, feather falling) and attribute modifiers onto the tooltip.
+
+---
+
 ## [1.0.0-alpha.7] - 2026-10-31
 
 ### 日本語 (Japanese)

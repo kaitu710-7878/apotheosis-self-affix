@@ -43,7 +43,7 @@ public class SoulAffixEventHandler {
         // 1. Process defensive affixes for the victim
         ItemStack victimSoul = SoulAffixHelper.getEquippedSoul(victim);
         if (!victimSoul.isEmpty() && AffixHelper.hasAffixes(victimSoul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(victimSoul);
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(victimSoul);
             DamageSource source = event.getSource();
             float currentDamage = event.getAmount();
 
@@ -71,7 +71,7 @@ public class SoulAffixEventHandler {
         if (directAttacker instanceof LivingEntity attacker) {
             ItemStack attackerSoul = SoulAffixHelper.getEquippedSoul(attacker);
             if (!attackerSoul.isEmpty() && AffixHelper.hasAffixes(attackerSoul)) {
-                Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(attackerSoul);
+                Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(attackerSoul);
                 float bonusDamage = 0.0f;
                 for (AffixInstance inst : affixes.values()) {
                     Affix affix = inst.affix().get();
@@ -101,7 +101,7 @@ public class SoulAffixEventHandler {
         // 1. Post-Hurt triggers on the victim (e.g. hurt-self potion, counter-blindness, thorns)
         ItemStack victimSoul = SoulAffixHelper.getEquippedSoul(victim);
         if (!victimSoul.isEmpty() && AffixHelper.hasAffixes(victimSoul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(victimSoul);
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(victimSoul);
             for (AffixInstance inst : affixes.values()) {
                 Affix affix = inst.affix().get();
                 if (affix == null) continue;
@@ -116,7 +116,7 @@ public class SoulAffixEventHandler {
         if (directAttacker instanceof LivingEntity attacker) {
             ItemStack attackerSoul = SoulAffixHelper.getEquippedSoul(attacker);
             if (!attackerSoul.isEmpty() && AffixHelper.hasAffixes(attackerSoul)) {
-                Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(attackerSoul);
+                Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(attackerSoul);
                 for (AffixInstance inst : affixes.values()) {
                     Affix affix = inst.affix().get();
                     if (affix == null) continue;
@@ -139,7 +139,7 @@ public class SoulAffixEventHandler {
 
         ItemStack soul = SoulAffixHelper.getEquippedSoul(blocker);
         if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(soul);
             float blocked = event.getBlockedDamage();
 
             for (AffixInstance inst : affixes.values()) {
@@ -164,7 +164,7 @@ public class SoulAffixEventHandler {
             if (arrow.getOwner() instanceof LivingEntity shooter) {
                 ItemStack soul = SoulAffixHelper.getEquippedSoul(shooter);
                 if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(soul);
                     for (AffixInstance inst : affixes.values()) {
                         Affix affix = inst.affix().get();
                         if (affix == null) continue;
@@ -188,7 +188,7 @@ public class SoulAffixEventHandler {
             if (arrow.getOwner() instanceof LivingEntity shooter) {
                 ItemStack soul = SoulAffixHelper.getEquippedSoul(shooter);
                 if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+                    Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(soul);
                     for (AffixInstance inst : affixes.values()) {
                         Affix affix = inst.affix().get();
                         if (affix == null) continue;
@@ -213,7 +213,7 @@ public class SoulAffixEventHandler {
 
         ItemStack soul = SoulAffixHelper.getEquippedSoul(player);
         if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(soul);
             float totalBonusRate = 0.0f;
 
             for (AffixInstance inst : affixes.values()) {
@@ -250,7 +250,7 @@ public class SoulAffixEventHandler {
 
         ItemStack soul = SoulAffixHelper.getEquippedSoul(player);
         if (!soul.isEmpty() && AffixHelper.hasAffixes(soul)) {
-            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(soul);
+            Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = SoulAffixHelper.getAffixesSafe(soul);
             for (AffixInstance inst : affixes.values()) {
                 Affix affix = inst.affix().get();
                 if (affix == null) continue;

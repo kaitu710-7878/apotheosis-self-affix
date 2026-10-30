@@ -173,6 +173,43 @@ public class SoulAffixHelper {
     }
 
     /**
+     * Safely retrieves all affixes from the Soul stack, with fallback to direct NBT parsing
+     * if Apotheosis's cached map was cleared or failed category validation.
+     */
+    public static Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> getAffixesSafe(ItemStack stack) {
+        if (stack.isEmpty() || !stack.hasTag()) {
+            return Collections.emptyMap();
+        }
+
+        Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(stack);
+        if (!affixes.isEmpty()) {
+            return affixes;
+        }
+
+        // Direct fallback from NBT if AffixHelper.getAffixes returns empty
+        net.minecraft.nbt.CompoundTag afxData = stack.getTagElement(AffixHelper.AFFIX_DATA);
+        if (afxData == null || !afxData.contains(AffixHelper.AFFIXES)) {
+            return Collections.emptyMap();
+        }
+
+        net.minecraft.nbt.CompoundTag affixesTag = afxData.getCompound(AffixHelper.AFFIXES);
+        dev.shadowsoffire.placebo.reload.DynamicHolder<LootRarity> rarityHolder = AffixHelper.getRarity(afxData);
+        if (!rarityHolder.isBound()) {
+            rarityHolder = RarityRegistry.getMinRarity();
+        }
+
+        Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> map = new HashMap<>();
+        for (String key : affixesTag.getAllKeys()) {
+            dev.shadowsoffire.placebo.reload.DynamicHolder<Affix> holder = dev.shadowsoffire.apotheosis.adventure.affix.AffixRegistry.INSTANCE.holder(new net.minecraft.resources.ResourceLocation(key));
+            if (holder.isBound()) {
+                float level = affixesTag.getFloat(key);
+                map.put(holder, new AffixInstance(holder, stack, rarityHolder, level));
+            }
+        }
+        return map;
+    }
+
+    /**
      * Aggregates all attribute modifiers from all affixes on the Soul item.
      * Handles custom rarity scaling (e.g. Esoteric) and ensures proper Curios application.
      */
@@ -182,7 +219,7 @@ public class SoulAffixHelper {
             return modifiers;
         }
 
-        Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = AffixHelper.getAffixes(stack);
+        Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = getAffixesSafe(stack);
         int index = 0;
         Set<String> addedNames = new HashSet<>();
 

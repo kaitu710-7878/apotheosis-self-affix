@@ -5,7 +5,6 @@ import com.yutaka.apotheosis_self_affix.config.ModConfig;
 import com.yutaka.apotheosis_self_affix.util.SoulAffixHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -23,7 +22,7 @@ public class SoulEquipHandler {
         Player player = event.getEntity();
         if (player.level().isClientSide) return;
 
-        equipSoulSafely(player);
+        equipSoulIfCompletelyMissing(player);
     }
 
     @SubscribeEvent
@@ -32,7 +31,7 @@ public class SoulEquipHandler {
         Player player = event.getEntity();
         if (player.level().isClientSide) return;
 
-        equipSoulSafely(player);
+        equipSoulIfCompletelyMissing(player);
     }
 
     @SubscribeEvent
@@ -46,7 +45,6 @@ public class SoulEquipHandler {
         // Safely transfer the original soul across death clone
         ItemStack originalSoul = SoulAffixHelper.getEquippedSoul(original);
         if (originalSoul.isEmpty()) {
-            // Check inventory of original player
             for (int i = 0; i < original.getInventory().getContainerSize(); i++) {
                 ItemStack stack = original.getInventory().getItem(i);
                 if (!stack.isEmpty() && stack.is(ApotheosisSelfAffix.SOUL.get())) {
@@ -70,57 +68,59 @@ public class SoulEquipHandler {
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide) return;
-        if (!ModConfig.AUTO_EQUIP_ON_JOIN.get()) return;
+    /**
+     * Checks if the player has a soul ANYWHERE in their possession:
+     * - Curios soul slot
+     * - Main inventory, armor, offhand
+     */
+    public static boolean hasSoulInPossession(Player player) {
+        if (player == null) return false;
 
-        // Safety check every 2 seconds (40 ticks)
-        if (event.player.tickCount % 40 == 0) {
-            equipSoulSafely(event.player);
+        // 1. Check Curios soul slot
+        boolean hasInCurios = CuriosApi.getCuriosInventory(player)
+                .map(inv -> {
+                    Optional<SlotResult> slot = inv.findCurio("soul", 0);
+                    return slot.isPresent() && !slot.get().stack().isEmpty();
+                })
+                .orElse(false);
+        if (hasInCurios) return true;
+
+        // 2. Check Player inventory
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (!stack.isEmpty() && stack.is(ApotheosisSelfAffix.SOUL.get())) {
+                return true;
+            }
         }
+
+        return false;
     }
 
     /**
-     * Equips a soul safely:
-     * 1. NEVER overwrites if the soul slot already contains an item.
-     * 2. If the soul slot is empty, first checks if the player already carries a soul in inventory.
-     *    If so, equips that existing (affixed) soul into the slot without creating a duplicate.
-     * 3. If the soul slot is empty and no soul is in inventory (lost/dropped/inaccessible),
-     *    creates and equips a new soul as a recovery mechanism (per user specification).
+     * Supplies a relief soul ONLY when the player possesses no soul anywhere.
+     * Never overwrites existing equipped soul.
+     * Never duplicates a soul if the player has one in their inventory.
      */
-    public static boolean equipSoulSafely(Player player) {
+    public static boolean equipSoulIfCompletelyMissing(Player player) {
         if (player == null) return false;
 
+        // If player already has a soul in slot or inventory, do NOTHING! No duplicates, no overwrites.
+        if (hasSoulInPossession(player)) {
+            return false;
+        }
+
+        // Only when completely missing (lost, dropped, etc.) -> supply relief soul in Curios slot
         return CuriosApi.getCuriosInventory(player).map(inv -> {
             Optional<SlotResult> slot = inv.findCurio("soul", 0);
-
-            // 1. NEVER overwrite: if slot is already occupied, leave it completely alone!
-            if (slot.isPresent() && !slot.get().stack().isEmpty()) {
-                return false;
-            }
-
-            // 2. Check if player has an existing soul in inventory
-            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                ItemStack invStack = player.getInventory().getItem(i);
-                if (!invStack.isEmpty() && invStack.is(ApotheosisSelfAffix.SOUL.get())) {
-                    ItemStack toEquip = invStack.copy();
-                    player.getInventory().setItem(i, ItemStack.EMPTY);
-                    inv.setEquippedCurio("soul", 0, toEquip);
-                    if (ModConfig.DEBUG_LOG.get()) {
-                        ApotheosisSelfAffix.LOGGER.info("Moved existing Soul from inventory to Soul slot for player {}", player.getName().getString());
-                    }
-                    return true;
+            if (slot.isEmpty() || slot.get().stack().isEmpty()) {
+                ItemStack newSoul = new ItemStack(ApotheosisSelfAffix.SOUL.get());
+                inv.setEquippedCurio("soul", 0, newSoul);
+                if (ModConfig.DEBUG_LOG.get()) {
+                    ApotheosisSelfAffix.LOGGER.info("Supplied relief Soul for player {}", player.getName().getString());
                 }
+                return true;
             }
-
-            // 3. No soul in slot, no soul in inventory -> relief / recovery mechanism generates a new soul
-            ItemStack newSoul = new ItemStack(ApotheosisSelfAffix.SOUL.get());
-            inv.setEquippedCurio("soul", 0, newSoul);
-            if (ModConfig.DEBUG_LOG.get()) {
-                ApotheosisSelfAffix.LOGGER.info("Supplied recovery/initial Soul for player {}", player.getName().getString());
-            }
-            return true;
+            return false;
         }).orElse(false);
     }
 }
