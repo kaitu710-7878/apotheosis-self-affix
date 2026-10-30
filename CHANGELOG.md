@@ -1,5 +1,25 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.3] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 (Fixes):**
+  - Curios API において魂スロットがプレイヤーに付与されない問題を修正：
+    - `curios/entities/entities.json` を追加し、`minecraft:player` に対する `soul` スロットの割り当てを明示。
+    - `InterModComms (IMC)` による `SlotTypeMessage.REGISTER_TYPE` の送信処理を追加し、データパックとコード双方から確実にスロットが登録される二重登録構成を採用。
+  - プレイヤーログイン時および初期化遅延時の魂自動装備処理（`equipSoulIfMissing`）を強化し、セーフティネットタイマーを追加。
+
+---
+
+### English
+- **Fixes:**
+  - Fixed an issue where the Soul slot was not attached to players in Curios:
+    - Added `curios/entities/entities.json` to explicitly assign the `soul` slot to `minecraft:player`.
+    - Added InterModComms (IMC) registration via `SlotTypeMessage.REGISTER_TYPE` to guarantee slot creation from both datapack and runtime channels.
+  - Enhanced initial Soul auto-equipping logic with a periodic safety check to handle delayed Curios inventory initialization.
+
+---
+
 ## [1.0.0-alpha.2] - 2026-10-31
 
 ### 日本語 (Japanese)

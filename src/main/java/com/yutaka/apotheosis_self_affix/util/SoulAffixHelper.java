@@ -47,39 +47,39 @@ public class SoulAffixHelper {
     }
 
     /**
-     * Retrieves the equipped Soul item from the player's Curios inventory.
+     * Retrieves the equipped Soul item from the entity's Curios inventory.
      */
     public static ItemStack getEquippedSoul(LivingEntity entity) {
         if (entity == null) {
             return ItemStack.EMPTY;
         }
-        Optional<SlotResult> slot = CuriosApi.getCuriosHelper().findCurio(entity, "soul", 0);
-        if (slot.isPresent() && !slot.get().stack().isEmpty()) {
-            return slot.get().stack();
-        }
-        // Fallback: look for the Soul item in any Curios slot
-        return CuriosApi.getCuriosHelper()
-                .findFirstCurio(entity, ApotheosisSelfAffix.SOUL.get())
-                .map(SlotResult::stack)
+        return CuriosApi.getCuriosInventory(entity)
+                .map(inv -> {
+                    Optional<SlotResult> slot = inv.findCurio("soul", 0);
+                    if (slot.isPresent() && !slot.get().stack().isEmpty()) {
+                        return slot.get().stack();
+                    }
+                    return inv.findFirstCurio(ApotheosisSelfAffix.SOUL.get())
+                            .map(SlotResult::stack)
+                            .orElse(ItemStack.EMPTY);
+                })
                 .orElse(ItemStack.EMPTY);
     }
 
     /**
-     * Determines whether an affix (from Apotheosis, Apotheotic Additions, Apothic Infinite, Esoteric Reforging, etc.)
-     * can be applied to the Soul. Souls accept any affix valid for weapon or armor categories,
-     * plus DurableAffix (which functions as experience boost).
+     * Determines whether an affix can be applied to the Soul.
+     * Souls accept any affix valid for weapon or armor categories,
+     * plus DurableAffix (substituting durability for XP gain).
      */
     public static boolean canAffixApplyToSoul(Affix affix, ItemStack stack, LootRarity rarity) {
         if (affix == null) {
             return false;
         }
 
-        // Durable affix is accepted as an experience gain booster substitute
         if (affix instanceof DurableAffix) {
             return true;
         }
 
-        // Check if the affix can apply to any weapon or armor category
         for (LootCategory category : ALL_SOUL_CATEGORIES) {
             try {
                 if (affix.canApplyTo(stack, category, rarity)) {
@@ -93,7 +93,6 @@ public class SoulAffixHelper {
 
     /**
      * Aggregates all attribute modifiers from all affixes on the Soul item.
-     * Evaluates modifiers for MAINHAND (weapons) and CHEST (armor), re-mapping UUIDs to match the Curios slot UUID.
      */
     public static Multimap<Attribute, AttributeModifier> getSoulAttributeModifiers(ItemStack stack, UUID slotUuid) {
         Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
@@ -111,11 +110,9 @@ public class SoulAffixHelper {
             LootRarity rarity = inst.rarity().get();
             float level = inst.level();
 
-            // Collect modifiers as if equipped in MAINHAND (weapon stats) and CHEST (armor stats)
             for (EquipmentSlot slot : new EquipmentSlot[]{EquipmentSlot.MAINHAND, EquipmentSlot.CHEST}) {
                 int finalIndex = index;
                 affix.addModifiers(stack, rarity, level, slot, (attr, mod) -> {
-                    // Create a deterministic modifier tied to the Curios slot UUID and affix index
                     UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex);
                     AttributeModifier curioMod = new AttributeModifier(
                             modUuid,
