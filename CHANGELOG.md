@@ -1,5 +1,21 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.2] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 (Fixes):**
+  - `META-INF/mods.toml` における Apothic Attributes の依存先 modId を正しい `attributeslib` に修正（`apothic_attributes` による起動時依存解決エラー・クラッシュを解消）。
+  - `apothic-infinite` の公式 modId（`apothic_infnite`）に合わせて依存関係定義を同期。
+
+---
+
+### English
+- **Fixes:**
+  - Corrected the Apothic Attributes dependency modId in `META-INF/mods.toml` to `attributeslib` (resolved crash caused by unresolved `apothic_attributes` dependency).
+  - Synchronized `apothic-infinite` optional dependency modId with its official ID (`apothic_infnite`).
+
+---
+
 ## [1.0.0-alpha.1] - 2026-10-31
 
 ### 日本語 (Japanese)
