@@ -1,5 +1,27 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.0.0-alpha.6] - 2026-10-31
+
+### 日本語 (Japanese)
+- **修正 & 改善 (Fixes & Improvements):**
+  - **魂の増殖防止 & 上書き防止の完全改修:**
+    - ログイン時およびリスポーン時、プレイヤーがすでに魂を所持しているか（Curios全スロット、メインインベントリ、防具、オフハンド、マウスカーソル保持アイテム）を包括的に検証する判定（`hasAnySoulInPossession`）を実装。
+    - プレイヤーの永続タグ（`PlayerPersisted`）配下に配布済みフラグ（`GIVEN_TAG`）を保存し、一度でも配布されたプレイヤーには二度と新規生成を行わないよう厳格化。
+    - スロットにアイテムが存在する場合は上書き（`setEquippedCurio`）を絶対に実行しない安全ガードを追加。
+    - 魂スロットが空で、かつ手持ちインベントリに既存の魂（アフィックス済み含む）が存在する場合は、新規生成せず既存の魂を魂スロットへ安全に移動・装備するスマート装着処理を導入。
+
+---
+
+### English
+- **Fixes & Improvements:**
+  - **Complete Overhaul of Duplicate Prevention & Overwrite Protection:**
+    - Implemented comprehensive possession checks (`hasAnySoulInPossession`) inspecting all Curios slots, player inventory, armor, offhand, and cursor-carried stacks before attempting any soul operations.
+    - Persisted the given flag (`GIVEN_TAG`) under `PlayerPersisted` to permanently prevent redundant soul generation on relogin or respawn.
+    - Added strict overwrite prevention ensuring occupied soul slots are never overwritten by new items.
+    - Implemented a smart equip feature that transfers an existing affixed Soul from the main inventory into an empty soul slot instead of fabricating duplicates.
+
+---
+
 ## [1.0.0-alpha.5] - 2026-10-31
 
 ### 日本語 (Japanese)
