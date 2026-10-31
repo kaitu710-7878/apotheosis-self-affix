@@ -36,9 +36,9 @@ public class SoulScreen extends AbstractContainerScreen<SoulMenu> {
         // Render main GUI background (vanilla texture size is 256x256, container is 176x166)
         guiGraphics.blit(TEXTURE, left, top, 0, 0, this.imageWidth, this.imageHeight);
 
-        // If the soul slot (slot 0) is empty, render the ghostly soul icon inside the slot at (80, 20)
+        // If the soul slot (slot 0) is empty, render the ghostly soul icon inside the slot at (80, 35)
         if (!this.menu.getSlot(0).hasItem()) {
-            guiGraphics.blit(SLOT_ICON, left + 80, top + 20, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(SLOT_ICON, left + 80, top + 35, 0, 0, 16, 16, 16, 16);
         }
     }
 

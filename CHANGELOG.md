@@ -1,5 +1,35 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.1] - 2026-10-31
+
+### 日本語 (Japanese)
+- **補強テーブル（Augmenting Table）クラッシュの修正:**
+  - `AttributeAffix.getAugmentingText` において、エソテリック（Esoteric）やエンシェント等のカスタムレアリティ処理時に `modifiers.get(rarity)` が null となり発生していた NPE（NullPointerException）を `AttributeAffixMixin` のフォールバック安全注入により解消。
+- **同一属性アフィックスの重複付与・重複加算防止:**
+  - 魂アイテムが武器・防具全カテゴリのアフィックスを受け入れ可能な仕様に伴い、部位別（頭・胴等）の同種アフィックス（「+7 最大体力」と「+5 最大体力」や「ノックバック耐性」等）が同時に付与され重複適用されていた不具合を修正。
+  - `LootControllerMixin` によりリフォージ・付与抽選時に同一属性（Attribute）・同一被ダメージ軽減種別・同一ポーション効果を持つアフィックスの重複ロールを完全防止。
+  - `SoulAffixHelper` により、既に複数付与されている魂を装備した場合でも最も高い効果量（絶対値最大）の修飾子のみを優先適用する安全二重防御機構を実装。
+- **魂の祭壇GUIテクスチャのバニラ流用・ピクセル整合化:**
+  - 下部のプレイヤーインベントリ部分をバニラ標準のコンテナテクスチャから流用し、違和感のない100%バニラ準拠のUIに統一。
+  - テクスチャシートをバニラ標準の 256x256（GUI領域 176x166）に統一し、テクスチャの引き伸ばしに起因するスロット枠・ホバー枠・空スロット用アイコンの座標ズレを解消。
+  - 魂スロットを中央（x=80, y=35）に正確に配置し、シアンの祭壇装飾枠と完全に一致。
+
+---
+
+### English
+- **Augmenting Table Crash Fix:**
+  - Fixed a `NullPointerException` in `AttributeAffix.getAugmentingText` occurring when augmenting items with custom rarities (such as Esoteric or Ancient) where `modifiers.get(rarity)` returned null, by adding a safe fallback injection in `AttributeAffixMixin`.
+- **Prevention of Duplicate Attribute Affixes:**
+  - Resolved an issue where multiple affixes targeting the same attribute (e.g. "+7 Max Health" and "+5 Max Health", or multiple Knockback Resistance modifiers) from different equipment slots could roll together on the Soul item and stack simultaneously.
+  - Added conflict key filtering in `LootControllerMixin` during reforging and affix generation to prevent rolling affixes that target the same Attribute, Damage Type, or Mob Effect.
+  - Implemented deduplication in `SoulAffixHelper` to ensure only the highest magnitude modifier for any single Attribute is applied to the player even if legacy items with duplicates are equipped.
+- **Soul Altar GUI Vanilla Integration & Pixel Alignment:**
+  - Replaced the procedural player inventory background with authentic vanilla container assets (`dispenser.png`), eliminating artificial visual artifacts.
+  - Standardized texture dimensions to vanilla 256x256 (container bounds 176x166), resolving UV scaling mismatch that caused slot borders, hover highlights, and the empty soul icon to be displaced.
+  - Aligned the central Soul slot cleanly at (x=80, y=35) with the cyan altar accent border.
+
+---
+
 ## [1.1.0] - 2026-10-31
 
 ### 日本語 (Japanese)

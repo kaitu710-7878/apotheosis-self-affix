@@ -28,8 +28,8 @@ public class SoulMenu extends AbstractContainerMenu {
                 .map(ISoulHandler::getItemHandler)
                 .orElseGet(() -> new ItemStackHandler(1));
 
-        // Slot 0: Dedicated Soul Slot (center: 80, 20)
-        this.addSlot(new SlotItemHandler(soulHandler, 0, 80, 20) {
+        // Slot 0: Dedicated Soul Slot (center: 80, 35)
+        this.addSlot(new SlotItemHandler(soulHandler, 0, 80, 35) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
                 return stack.getItem() instanceof SoulItem;
