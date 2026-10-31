@@ -30,19 +30,6 @@ public class LootControllerMixin {
             CallbackInfoReturnable<List<DynamicHolder<? extends Affix>>> cir
     ) {
         if (stack.getItem() instanceof SoulItem) {
-            Set<Object> currentConflictKeys = new HashSet<>();
-            if (currentAffixes != null) {
-                for (DynamicHolder<? extends Affix> holder : currentAffixes) {
-                    Affix afx = holder.get();
-                    if (afx != null) {
-                        Object key = SoulAffixHelper.getAffixConflictKey(afx);
-                        if (key != null) {
-                            currentConflictKeys.add(key);
-                        }
-                    }
-                }
-            }
-
             @SuppressWarnings({"unchecked", "rawtypes"})
             List<DynamicHolder<? extends Affix>> available = new java.util.ArrayList<>(
                     (List) AffixHelper.byType(type).stream()
@@ -51,12 +38,6 @@ public class LootControllerMixin {
                                 return affix != null && SoulAffixHelper.canAffixApplyToSoul(affix, stack, rarity);
                             })
                             .filter(holder -> currentAffixes == null || !currentAffixes.contains(holder))
-                            .filter(holder -> {
-                                Affix affix = holder.get();
-                                if (affix == null) return false;
-                                Object key = SoulAffixHelper.getAffixConflictKey(affix);
-                                return key == null || !currentConflictKeys.contains(key);
-                            })
                             .toList()
             );
             cir.setReturnValue(available);

@@ -1,5 +1,25 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.2] - 2026-10-31
+
+### 日本語 (Japanese)
+- **部位別アフィックス効果の「統合・合算」システムの実装 (Attribute Consolidation):**
+  - 頭装備用や胴装備用など、部位違いの同種アフィックス（例: +7 最大体力 と +5 最大体力、あるいはノックバック耐性等）が付与された場合、効果を抹消・除外するのではなく、**同一の Attribute（属性）および Operation（加算・乗算方式）ごとに数値を合算して1つの修飾子に集約・統合**する仕様へと改良。
+  - ツールチップ上の表示も `+7 最大体力` と `+5 最大体力` のように分かれて残るのではなく、`+12 最大体力` のように1本の統一された属性行として美しく表示。
+  - プレイヤーへの属性適用時も、合算された合計値（+12 等）が1つの修飾子として適用されるため、効果が目減りすることなく完全に恩恵を享受可能。
+  - リフォージ・付与抽選時における同一属性のロール制限を解除し、同系統アフィックスの自由なロールと合算強化を許可。
+
+---
+
+### English
+- **Attribute Consolidation & Summation System (Attribute Consolidation):**
+  - When affixes targeting different equipment slots but sharing the same attribute (e.g. +7 Max Health and +5 Max Health, or multiple Knockback Resistance affixes) are present on the Soul, they are now **consolidated and summed into a single unified AttributeModifier per (Attribute, Operation)** rather than having one discarded or blocked.
+  - The tooltip now displays clean, combined values (e.g. `+12 Max Health`) instead of separate disjoint lines.
+  - When equipped, the player receives the full summed value as a single unified modifier without losing any buff potential.
+  - Removed roll conflict restrictions during reforging and affix generation, allowing multi-slot affix rolls to freely accumulate and combine.
+
+---
+
 ## [1.1.1] - 2026-10-31
 
 ### 日本語 (Japanese)

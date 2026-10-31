@@ -205,10 +205,6 @@ public class SoulAffixHelper {
     }
 
     private static java.lang.reflect.Field ATTRIBUTE_AFFIX_MODIFIERS_FIELD = null;
-    private static java.lang.reflect.Field ATTRIBUTE_AFFIX_ATTR_FIELD = null;
-    private static java.lang.reflect.Field DAMAGE_REDUCTION_TYPE_FIELD = null;
-    private static java.lang.reflect.Field POTION_AFFIX_EFFECT_FIELD = null;
-    private static java.lang.reflect.Field POTION_AFFIX_TARGET_FIELD = null;
 
     static {
         try {
@@ -216,75 +212,14 @@ public class SoulAffixHelper {
             ATTRIBUTE_AFFIX_MODIFIERS_FIELD.setAccessible(true);
         } catch (Exception ignored) {
         }
-        try {
-            ATTRIBUTE_AFFIX_ATTR_FIELD = dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix.class.getDeclaredField("attribute");
-            ATTRIBUTE_AFFIX_ATTR_FIELD.setAccessible(true);
-        } catch (Exception ignored) {
-        }
-        try {
-            DAMAGE_REDUCTION_TYPE_FIELD = dev.shadowsoffire.apotheosis.adventure.affix.effect.DamageReductionAffix.class.getDeclaredField("type");
-            DAMAGE_REDUCTION_TYPE_FIELD.setAccessible(true);
-        } catch (Exception ignored) {
-        }
-        try {
-            POTION_AFFIX_EFFECT_FIELD = dev.shadowsoffire.apotheosis.adventure.affix.effect.PotionAffix.class.getDeclaredField("effect");
-            POTION_AFFIX_EFFECT_FIELD.setAccessible(true);
-        } catch (Exception ignored) {
-        }
-        try {
-            POTION_AFFIX_TARGET_FIELD = dev.shadowsoffire.apotheosis.adventure.affix.effect.PotionAffix.class.getDeclaredField("target");
-            POTION_AFFIX_TARGET_FIELD.setAccessible(true);
-        } catch (Exception ignored) {
-        }
     }
 
-    /**
-     * Determines a conflict key for an affix to prevent duplicate types on a single Soul.
-     * E.g. two attributes modifying Max Health, or two damage reduction affixes for Physical damage.
-     */
-    public static Object getAffixConflictKey(Affix affix) {
-        if (affix == null) return null;
-
-        if (affix instanceof dev.shadowsoffire.apotheosis.adventure.affix.AttributeAffix) {
-            try {
-                if (ATTRIBUTE_AFFIX_ATTR_FIELD != null) {
-                    Object attr = ATTRIBUTE_AFFIX_ATTR_FIELD.get(affix);
-                    if (attr != null) return attr;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        if (affix instanceof dev.shadowsoffire.apotheosis.adventure.affix.effect.DamageReductionAffix) {
-            try {
-                if (DAMAGE_REDUCTION_TYPE_FIELD != null) {
-                    Object type = DAMAGE_REDUCTION_TYPE_FIELD.get(affix);
-                    if (type != null) return type;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        if (affix instanceof dev.shadowsoffire.apotheosis.adventure.affix.effect.PotionAffix) {
-            try {
-                if (POTION_AFFIX_EFFECT_FIELD != null && POTION_AFFIX_TARGET_FIELD != null) {
-                    Object effect = POTION_AFFIX_EFFECT_FIELD.get(affix);
-                    Object target = POTION_AFFIX_TARGET_FIELD.get(affix);
-                    if (effect != null && target != null) {
-                        return Objects.hash(effect, target);
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        return affix.getClass();
-    }
+    private record AttrOpKey(Attribute attribute, AttributeModifier.Operation operation) {}
 
     /**
      * Aggregates all attribute modifiers from all affixes on the Soul item.
-     * Handles custom rarity scaling (e.g. Esoteric), de-duplicates multiple modifiers
-     * for the same attribute (keeping the highest value), and ensures proper player application.
+     * Consolidates and sums multiple modifiers that share the same Attribute and Operation
+     * (e.g. helmet max health +7 and chestplate max health +5 are unified into a single +12 modifier).
      */
     public static Multimap<Attribute, AttributeModifier> getSoulAttributeModifiers(ItemStack stack, UUID slotUuid) {
         if (stack.isEmpty() || !AffixHelper.hasAffixes(stack)) {
@@ -292,10 +227,9 @@ public class SoulAffixHelper {
         }
 
         Map<dev.shadowsoffire.placebo.reload.DynamicHolder<? extends Affix>, AffixInstance> affixes = getAffixesSafe(stack);
-        int index = 0;
-        
-        // Map to keep only the highest modifier per Attribute to prevent duplicate stacking (e.g. +7 and +5 Max Health)
-        Map<Attribute, AttributeModifier> bestModifiers = new LinkedHashMap<>();
+
+        // Map to aggregate and sum modifier amounts per (Attribute, Operation)
+        Map<AttrOpKey, Double> aggregatedAmounts = new LinkedHashMap<>();
 
         for (AffixInstance inst : affixes.values()) {
             Affix affix = inst.affix().get();
@@ -329,17 +263,8 @@ public class SoulAffixHelper {
                             double rawValue = modInst.valueFactory().get(level);
                             double scaledAmount = rawValue * finalScale;
 
-                            AttributeModifier existing = bestModifiers.get(attr);
-                            if (existing == null || Math.abs(scaledAmount) > Math.abs(existing.getAmount())) {
-                                UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + index + attr.getDescriptionId().hashCode());
-                                AttributeModifier curioMod = new AttributeModifier(
-                                        modUuid,
-                                        "Soul Affix: " + affix.getId().getPath(),
-                                        scaledAmount,
-                                        op
-                                );
-                                bestModifiers.put(attr, curioMod);
-                            }
+                            AttrOpKey key = new AttrOpKey(attr, op);
+                            aggregatedAmounts.merge(key, scaledAmount, Double::sum);
                             resolved = true;
                         }
                     }
@@ -351,29 +276,41 @@ public class SoulAffixHelper {
             if (!resolved) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack dummyStack = getRepresentativeStack(slot);
-                    int finalIndex = index;
+                    boolean[] addedForSlot = new boolean[]{false};
                     affix.addModifiers(dummyStack, effectiveRarity, level, slot, (attr, mod) -> {
                         double scaledAmount = mod.getAmount() * finalScale;
-                        AttributeModifier existing = bestModifiers.get(attr);
-                        if (existing == null || Math.abs(scaledAmount) > Math.abs(existing.getAmount())) {
-                            UUID modUuid = new UUID(slotUuid.getMostSignificantBits(), slotUuid.getLeastSignificantBits() + finalIndex + attr.getDescriptionId().hashCode());
-                            AttributeModifier curioMod = new AttributeModifier(
-                                    modUuid,
-                                    "Soul Affix: " + mod.getName(),
-                                    scaledAmount,
-                                    mod.getOperation()
-                            );
-                            bestModifiers.put(attr, curioMod);
-                        }
+                        AttrOpKey key = new AttrOpKey(attr, mod.getOperation());
+                        aggregatedAmounts.merge(key, scaledAmount, Double::sum);
+                        addedForSlot[0] = true;
                     });
+                    if (addedForSlot[0]) {
+                        // Extracted modifiers for this affix instance; do not duplicate across other slots
+                        break;
+                    }
                 }
             }
-            index++;
         }
 
         Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
-        for (Map.Entry<Attribute, AttributeModifier> entry : bestModifiers.entrySet()) {
-            modifiers.put(entry.getKey(), entry.getValue());
+        for (Map.Entry<AttrOpKey, Double> entry : aggregatedAmounts.entrySet()) {
+            Attribute attr = entry.getKey().attribute();
+            AttributeModifier.Operation op = entry.getKey().operation();
+            double totalAmount = entry.getValue();
+
+            if (Math.abs(totalAmount) < 0.0001) continue;
+
+            UUID modUuid = new UUID(
+                    slotUuid.getMostSignificantBits() ^ ((long) op.toValue() << 32),
+                    slotUuid.getLeastSignificantBits() ^ (long) attr.getDescriptionId().hashCode()
+            );
+
+            AttributeModifier unifiedMod = new AttributeModifier(
+                    modUuid,
+                    "Soul Affix Unified: " + attr.getDescriptionId(),
+                    totalAmount,
+                    op
+            );
+            modifiers.put(attr, unifiedMod);
         }
         return modifiers;
     }
