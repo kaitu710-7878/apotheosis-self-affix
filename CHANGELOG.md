@@ -1,5 +1,15 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.0-alpha.3] - 2026-10-31
+
+### 日本語 (Japanese)
+- **起動時クラッシュ（InvalidInjectionException）の修正:**
+  - `DamageReductionAffixMixin` において存在しないメソッド `getDamageProtection` への Injection を削除し、実際の内部計算メソッド `getTrueLevel` へ正しく Injection するよう修正。起動時の Mixin 適用クラッシュを解消しました。
+- **魂の祭壇 GUI のスロット配置とテクスチャの完全一致:**
+  - `soul_inventory.png` の上部魂スロット枠およびルーン装飾を、スロット (80, 20) および空スロットアイコンと 1px のズレもなく完全に位置合わせしました。
+
+---
+
 ## [1.1.0-alpha.2] - 2026-10-31
 
 ### 日本語 (Japanese)
