@@ -43,6 +43,7 @@ public class SoulMenu extends AbstractContainerMenu {
             @Override
             public void setChanged() {
                 super.setChanged();
+                SoulItem.stripSocketsAndGems(getItem());
                 SoulAttributeManager.updateSoulAttributes(player);
             }
         });

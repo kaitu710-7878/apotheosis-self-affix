@@ -52,6 +52,7 @@ public class SoulItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
+        stripSocketsAndGems(held);
 
         if (!level.isClientSide) {
             player.getCapability(SoulCapabilityProvider.SOUL_CAPABILITY).ifPresent(handler -> {
@@ -88,7 +89,27 @@ public class SoulItem extends Item {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, Level level, net.minecraft.world.entity.Entity entity, int slotId, boolean isSelected) {
+        super.inventoryTick(stack, level, entity, slotId, isSelected);
+        stripSocketsAndGems(stack);
+    }
+
+    public static void stripSocketsAndGems(ItemStack stack) {
+        if (stack.isEmpty() || !stack.hasTag()) return;
+        net.minecraft.nbt.CompoundTag tag = stack.getTagElement(AffixHelper.AFFIX_DATA);
+        if (tag != null) {
+            if (tag.contains(dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.SOCKETS)) {
+                tag.remove(dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.SOCKETS);
+            }
+            if (tag.contains(dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.GEMS)) {
+                tag.remove(dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.GEMS);
+            }
+        }
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltips, TooltipFlag flag) {
+        stripSocketsAndGems(stack);
         tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.soul_desc").withStyle(ChatFormatting.DARK_AQUA));
         if (ModConfig.KEEP_ON_DEATH.get()) {
             tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.keep_on_death").withStyle(ChatFormatting.LIGHT_PURPLE));

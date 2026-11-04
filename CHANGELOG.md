@@ -1,5 +1,35 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.3] - 2026-11-04
+
+### 日本語 (Japanese)
+- **魂アイテムにおけるジェム・ソケット機能の完全無効化 (Complete Gem & Socket Prohibition):**
+  - ユーザー指示に基づき、魂アイテム（Soul Item）に対して例外なくジェムおよびソケットを使用できないよう徹底的にガード。
+  - **ソケット所持・追加の禁止:**
+    - `SocketHelperMixin` および Forgeイベント `GetItemSocketsEvent` により、魂アイテムのソケット数を常時 0 に固定。
+    - 鍛造の印（Sigil of Socketing）によるソケット追加レシピ（`AddSocketsRecipeMixin`）で魂アイテムを完全に拒絶。
+    - リフォージ（再鍛錬）時やドロップ時等にソケット数が設定されるのを遮断（`setSockets` 時に自動破棄）。
+  - **ジェム嵌め込み・適用の全面遮断:**
+    - 鍛冶台でのジェム嵌め込みレシピ（`SocketingRecipeMixin`）で魂アイテムを拒絶。
+    - `GemInstanceMixin`、`GemMixin`、および `ItemSocketingEvent.CanSocket` により、あらゆるジェムの効果対象判定を魂アイテムに対して常に `false` / `DENY` に強制。
+    - 魂アイテムがNBT内にジェムやソケットデータを保持していた場合でも、インベントリ更新時（`inventoryTick`）や装備時、GUI操作時に自動的に消去・浄化（サニタイズ）。
+
+---
+
+### English
+- **Complete Prohibition of Gems and Sockets on Soul Items:**
+  - Implemented comprehensive and absolute restrictions to ensure Gems and Sockets cannot be used with Soul Items under any circumstances.
+  - **Prohibition of Sockets & Socket Addition:**
+    - Locked Soul Item sockets to 0 at all times via `SocketHelperMixin` and Forge's `GetItemSocketsEvent`.
+    - Blocked the Sigil of Socketing recipe (`AddSocketsRecipeMixin`) from accepting Soul Items.
+    - Prevented sockets from being rolled or retained during reforging or item generation (`setSockets` cancellation).
+  - **Complete Rejection of Gem Socketing & Application:**
+    - Blocked Smithing Table gem socketing recipe (`SocketingRecipeMixin`) from matching Soul Items.
+    - Forced `GemInstanceMixin`, `GemMixin`, and `ItemSocketingEvent.CanSocket` to always return `false` / `DENY` for Soul Items.
+    - Automatically cleanses and strips any legacy socket or gem NBT data upon inventory tick, equip, or GUI placement.
+
+---
+
 ## [1.1.2] - 2026-10-31
 
 ### 日本語 (Japanese)

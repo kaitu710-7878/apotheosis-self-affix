@@ -11,7 +11,12 @@
     "AttributeAffixMixin",
     "AffixInstanceMixin",
     "PotionAffixMixin",
-    "DamageReductionAffixMixin"
+    "DamageReductionAffixMixin",
+    "SocketHelperMixin",
+    "AddSocketsRecipeMixin",
+    "SocketingRecipeMixin",
+    "GemInstanceMixin",
+    "GemMixin"
   ],
   "client": [],
   "injectors": {
