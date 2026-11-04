@@ -1,5 +1,31 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.4] - 2026-11-04
+
+### 日本語 (Japanese)
+- **ソケット数連動バフの実装（1ソケットにつき HP+3 / 防御力+1 / 防具強度+1）:**
+  - 魂アイテムのソケット保有（リフォージやドロップ時）および鍛造の印（Sigil of Socketing）によるソケット拡張を正常に解禁。
+  - 耐久力ボーナスと同様の代替システムとして、魂が持つソケット数に応じて **1ソケットにつき 最大体力 +3、防御力 +1、防具強度 +1** をプレイヤーへ直接付与。
+  - アフィックス統合システム（v1.1.2）と完全連動し、他のアフィックスによるHPや防御力と同一の AttributeModifier として自然に合算・集約。
+  - 魂アイテムのツールチップにソケット加護の案内テキストを追加。
+- **ジェム装着の常時拒絶の継続 (Permanent Gem Insertion Rejection):**
+  - ソケットの保有・追加は有効化しつつ、ジェムをソケットへはめ込む動作は鍛冶台（`SocketingRecipe`）・ジェム判定（`GemInstance` / `Gem`）・イベント判定すべてにおいて常時拒否を継続。
+  - ソケットをジェム受け入れ穴としてではなく、魂の「器の容量（ステータス強化枠）」として機能する独自設計へと昇華。
+
+---
+
+### English
+- **Socket-Scaling Buff System (+3 Max HP / +1 Armor / +1 Toughness per Socket):**
+  - Enabled socket retention (from reforging and loot drops) and socket expansion using the Sigil of Socketing for the Soul item.
+  - Implemented a substitute scaling system similar to the durable affix: grants **+3 Max Health, +1 Armor, and +1 Armor Toughness per socket** to the player.
+  - Seamlessly integrates with the attribute consolidation system (v1.1.2), merging socket stats directly into existing Max Health, Armor, and Toughness modifier lines.
+  - Added an informational tooltip line describing the Socket Blessing.
+- **Permanent Rejection of Gem Socketing:**
+  - While sockets are active and expandable, inserting gems into the Soul item remains completely and permanently rejected across all crafting recipes, gem eligibility checks, and socketing events.
+  - Sockets now serve as soul capacity catalysts for raw stat scaling rather than receptacles for gems.
+
+---
+
 ## [1.1.3] - 2026-11-04
 
 ### 日本語 (Japanese)

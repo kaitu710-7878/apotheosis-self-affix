@@ -253,16 +253,6 @@ public class SoulAffixEventHandler {
     }
 
     /**
-     * Enforces that the Soul item can never have sockets.
-     */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onGetItemSockets(dev.shadowsoffire.apotheosis.adventure.event.GetItemSocketsEvent event) {
-        if (event.getStack().getItem() instanceof com.yutaka.apotheosis_self_affix.item.SoulItem) {
-            event.setSockets(0);
-        }
-    }
-
-    /**
      * Completely forbids any Gem from being socketed into the Soul item.
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)

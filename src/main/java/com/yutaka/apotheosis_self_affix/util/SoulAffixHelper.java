@@ -222,7 +222,7 @@ public class SoulAffixHelper {
      * (e.g. helmet max health +7 and chestplate max health +5 are unified into a single +12 modifier).
      */
     public static Multimap<Attribute, AttributeModifier> getSoulAttributeModifiers(ItemStack stack, UUID slotUuid) {
-        if (stack.isEmpty() || !AffixHelper.hasAffixes(stack)) {
+        if (stack.isEmpty() || (!AffixHelper.hasAffixes(stack) && dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.getSockets(stack) <= 0)) {
             return HashMultimap.create();
         }
 
@@ -289,6 +289,26 @@ public class SoulAffixHelper {
                     }
                 }
             }
+        }
+
+        // Socket blessing: +3 Max Health, +1 Armor, +1 Armor Toughness per socket
+        int sockets = dev.shadowsoffire.apotheosis.adventure.socket.SocketHelper.getSockets(stack);
+        if (sockets > 0) {
+            aggregatedAmounts.merge(
+                    new AttrOpKey(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH, AttributeModifier.Operation.ADDITION),
+                    sockets * 3.0,
+                    Double::sum
+            );
+            aggregatedAmounts.merge(
+                    new AttrOpKey(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR, AttributeModifier.Operation.ADDITION),
+                    sockets * 1.0,
+                    Double::sum
+            );
+            aggregatedAmounts.merge(
+                    new AttrOpKey(net.minecraft.world.entity.ai.attributes.Attributes.ARMOR_TOUGHNESS, AttributeModifier.Operation.ADDITION),
+                    sockets * 1.0,
+                    Double::sum
+            );
         }
 
         Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();

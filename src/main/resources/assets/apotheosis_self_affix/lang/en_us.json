@@ -9,6 +9,7 @@
   "tooltip.apotheosis_self_affix.soul_slot_header": "When equipped in Soul slot:",
   "tooltip.apotheosis_self_affix.soul_desc": "Equipped in the Soul slot. Channels its affixes directly into the player.",
   "tooltip.apotheosis_self_affix.keep_on_death": "Bound to your essence (Preserved across death)",
+  "tooltip.apotheosis_self_affix.socket_buff": "Socket Blessing: +3 Max Health, +1 Armor, +1 Toughness per socket (Gems cannot be socketed)",
   "tooltip.apotheosis_self_affix.attributes_header": "Soul Attribute Blessings:",
   "affix.apotheosis_self_affix.durable_xp_substitute": "%s%% Bonus Experience Gained (Durability substitute)",
   "message.apotheosis_self_affix.equipped": "The Soul has bound with your spirit.",

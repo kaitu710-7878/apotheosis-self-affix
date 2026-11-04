@@ -14,25 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = SocketHelper.class, remap = false)
 public class SocketHelperMixin {
 
-    @Inject(method = "getSockets", at = @At("HEAD"), cancellable = true)
-    private static void apotheosisSelfAffix$noSocketsForSoul(ItemStack stack, CallbackInfoReturnable<Integer> cir) {
-        if (stack.getItem() instanceof SoulItem) {
-            cir.setReturnValue(0);
-        }
-    }
-
-    @Inject(method = "setSockets", at = @At("HEAD"), cancellable = true)
-    private static void apotheosisSelfAffix$preventSetSockets(ItemStack stack, int sockets, CallbackInfo ci) {
-        if (stack.getItem() instanceof SoulItem) {
-            CompoundTag tag = stack.getTagElement(SocketHelper.AFFIX_DATA);
-            if (tag != null) {
-                tag.remove(SocketHelper.SOCKETS);
-                tag.remove(SocketHelper.GEMS);
-            }
-            ci.cancel();
-        }
-    }
-
     @Inject(method = "hasEmptySockets", at = @At("HEAD"), cancellable = true)
     private static void apotheosisSelfAffix$noEmptySockets(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         if (stack.getItem() instanceof SoulItem) {

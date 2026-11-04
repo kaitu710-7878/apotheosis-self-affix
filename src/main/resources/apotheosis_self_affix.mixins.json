@@ -13,7 +13,6 @@
     "PotionAffixMixin",
     "DamageReductionAffixMixin",
     "SocketHelperMixin",
-    "AddSocketsRecipeMixin",
     "SocketingRecipeMixin",
     "GemInstanceMixin",
     "GemMixin"
