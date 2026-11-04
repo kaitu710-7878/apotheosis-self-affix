@@ -115,7 +115,7 @@ public class SoulItem extends Item {
             tooltips.add(Component.translatable("tooltip.apotheosis_self_affix.socket_buff").withStyle(ChatFormatting.LIGHT_PURPLE));
         }
 
-        // Render dedicated Soul Slot attribute modifiers directly, completely independent of Curios
+        // Render dedicated Soul Slot attribute modifiers directly
         if (AffixHelper.hasAffixes(stack) || sockets > 0) {
             Multimap<Attribute, AttributeModifier> modifiers = SoulAffixHelper.getSoulAttributeModifiers(stack, DUMMY_UUID);
             if (!modifiers.isEmpty()) {

@@ -243,7 +243,7 @@ public class SoulAffixEventHandler {
 
     /**
      * Prevents any vanilla equipment slot modifiers from being attached to the Soul item.
-     * Souls are purely Curios accessories, eliminating duplicate "When on Head/Chest/Legs/Feet" tooltips.
+     * Souls are purely dedicated accessories, eliminating duplicate "When on Head/Chest/Legs/Feet" tooltips.
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onItemAttributeModifier(ItemAttributeModifierEvent event) {

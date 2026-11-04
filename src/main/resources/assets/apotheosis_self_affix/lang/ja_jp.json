@@ -1,7 +1,5 @@
 {
   "item.apotheosis_self_affix.soul": "魂",
-  "curios.identifier.soul": "魂",
-  "curios.modifiers.soul": "魂スロットに装備時:",
   "gui.apotheosis_self_affix.soul_menu": "魂の祭壇",
   "key.categories.apotheosis_self_affix": "Apotheosis Self Affix",
   "key.apotheosis_self_affix.open_soul_menu": "魂画面を開く",

@@ -1,5 +1,27 @@
 # CHANGELOG.md - Apotheosis Self Affix 変更履歴 / Update History
 
+## [1.1.5] - 2026-11-05
+
+### 日本語 (Japanese)
+- **Curios 関連コード・データの完全除去とクリーンアップ:**
+  - 独自Capabilityによる魂スロット管理への完全移行に伴い、旧仕様のCurios名残を全面的に撤廃。
+  - **コードからの完全除去:** `ApotheosisSelfAffix` 内のCuriosスロット登録処理（`InterModComms` / `enqueueIMC`）および関連importを削除。
+  - **データパック・依存設定の削除:** `data/curios` および `data/apotheosis_self_affix/curios` のスロット・エンティティ設定ファイルを全消去。
+  - **MOD設定・依存関係の解除:** `build.gradle` の Curios API 依存設定、および `mods.toml` の Curios 依存ブロックを撤廃。
+  - **言語ファイル・ドキュメントの適正化:** `ja_jp.json` / `en_us.json` 内の不要なCurios関連キーを削除し、`README.md` / `CONFIG.md` / `gradle.properties` の記述を独自魂スロット仕様へ統一。
+
+---
+
+### English
+- **Complete Removal & Clean-up of Curios Legacy References:**
+  - Following the complete transition to the standalone Soul Capability architecture, eliminated all remaining legacy artifacts related to Curios API.
+  - **Code Cleared:** Removed the Curios slot registration (`InterModComms` / `enqueueIMC`) and associated imports from `ApotheosisSelfAffix`.
+  - **Data Pack Configs Removed:** Deleted obsolete slot and entity definitions under `data/curios` and `data/apotheosis_self_affix/curios`.
+  - **Dependency Removal:** Cleaned out Curios API dependency declarations from both `build.gradle` and `mods.toml`.
+  - **Localization & Documentation Alignment:** Stripped unused Curios translation keys from `en_us.json` / `ja_jp.json` and refined `README.md`, `CONFIG.md`, and `gradle.properties` to cleanly reflect the standalone Soul Slot design.
+
+---
+
 ## [1.1.4] - 2026-11-04
 
 ### 日本語 (Japanese)
